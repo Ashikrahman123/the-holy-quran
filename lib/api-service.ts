@@ -827,25 +827,39 @@ export async function getChapterRecitation(reciterId: number, chapterNumber: num
     // Format surah number with leading zeros for consistent URL formatting
     const paddedSurah = chapterNumber.toString().padStart(3, "0")
 
-    // Use reliable public CDN sources that support CORS
+    // Try MP3Quran.net first (more reliable for full surahs)
     let audioUrl = ""
 
     if (reciterId === 7 || reciterId === 1) {
       // Mishary Alafasy or default
-      // EveryAyah is more reliable and supports CORS
-      audioUrl = `https://everyayah.com/data/Alafasy_128kbps/${paddedSurah}001.mp3`
+      // MP3Quran.net URL format
+      audioUrl = `${MP3QURAN_BASE}/${paddedSurah}.mp3`
     } else if (reciterId === 3) {
       // Al-Sudais
-      audioUrl = `https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/${paddedSurah}001.mp3`
+      audioUrl = `https://server10.mp3quran.net/sudais/${paddedSurah}.mp3`
     } else if (reciterId === 4) {
       // Abu Bakr al-Shatri
-      audioUrl = `https://everyayah.com/data/Abu_Bakr_Ash-Shaatree_128kbps/${paddedSurah}001.mp3`
+      audioUrl = `https://server7.mp3quran.net/shuraym/${paddedSurah}.mp3`
     } else {
       // Fallback to EveryAyah for any other reciter
-      audioUrl = `https://everyayah.com/data/Alafasy_128kbps/${paddedSurah}001.mp3`
+      audioUrl = `${EVERYAYAH_BASE}/${paddedSurah}001.mp3`
     }
 
     console.log("Generated audio URL:", audioUrl)
+
+    // Verify the URL is accessible
+    try {
+      const response = await fetch(audioUrl, { method: "HEAD" })
+      if (!response.ok) {
+        console.warn(`Primary audio URL not accessible: ${audioUrl}`)
+        // If primary URL fails, try EveryAyah as fallback
+        audioUrl = `${EVERYAYAH_BASE}/${paddedSurah}001.mp3`
+        console.log("Using fallback URL:", audioUrl)
+      }
+    } catch (error) {
+      console.warn("Error checking audio URL:", error)
+      // If checking fails, still use the URL but log the issue
+    }
 
     // Save to cache
     saveToCache(cacheKey, audioUrl)
@@ -855,7 +869,7 @@ export async function getChapterRecitation(reciterId: number, chapterNumber: num
 
     // Fallback to a reliable reciter and source
     const paddedSurah = chapterNumber.toString().padStart(3, "0")
-    return `https://everyayah.com/data/Alafasy_128kbps/${paddedSurah}001.mp3`
+    return `${EVERYAYAH_BASE}/${paddedSurah}001.mp3`
   }
 }
 
@@ -878,22 +892,8 @@ export async function getVerseRecitation(reciterId: number, verseKey: string): P
     const paddedSurah = surahNum.toString().padStart(3, "0")
     const paddedAyah = ayahNum.toString().padStart(3, "0")
 
-    // Generate the audio URL based on reciter ID
-    let audioUrl = ""
-
-    if (reciterId === 7 || reciterId === 1) {
-      // Mishary Alafasy (most common)
-      audioUrl = `https://everyayah.com/data/Alafasy_128kbps/${paddedSurah}${paddedAyah}.mp3`
-    } else if (reciterId === 3) {
-      // Al-Sudais
-      audioUrl = `https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/${paddedSurah}${paddedAyah}.mp3`
-    } else if (reciterId === 4) {
-      // Abu Bakr al-Shatri
-      audioUrl = `https://everyayah.com/data/Abu_Bakr_Ash-Shaatree_128kbps/${paddedSurah}${paddedAyah}.mp3`
-    } else {
-      // Default to Alafasy
-      audioUrl = `https://everyayah.com/data/Alafasy_128kbps/${paddedSurah}${paddedAyah}.mp3`
-    }
+    // Use EveryAyah.com for individual verses (most reliable)
+    const audioUrl = `${EVERYAYAH_BASE}/${paddedSurah}${paddedAyah}.mp3`
 
     console.log("Generated verse audio URL:", audioUrl)
 
@@ -903,14 +903,14 @@ export async function getVerseRecitation(reciterId: number, verseKey: string): P
   } catch (error) {
     console.error("Error getting verse recitation:", error)
 
-    // Fallback to a reliable format using Alafasy
+    // Fallback to a reliable format
     const [surahStr, ayahStr] = verseKey.split(":")
     const surahNum = Number.parseInt(surahStr, 10)
     const ayahNum = Number.parseInt(ayahStr, 10)
     const paddedSurah = surahNum.toString().padStart(3, "0")
     const paddedAyah = ayahNum.toString().padStart(3, "0")
 
-    return `https://everyayah.com/data/Alafasy_128kbps/${paddedSurah}${paddedAyah}.mp3`
+    return `${EVERYAYAH_BASE}/${paddedSurah}${paddedAyah}.mp3`
   }
 }
 

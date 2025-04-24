@@ -81,15 +81,6 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
             <Link
-              href="/stories"
-              className={cn(
-                "flex items-center h-9 text-foreground transition-colors hover:text-foreground/80",
-                pathname === "/stories" && "text-emerald-600 dark:text-emerald-400 font-medium",
-              )}
-            >
-              Stories
-            </Link>
-            <Link
               href="/search"
               className={cn(
                 "flex items-center h-9 text-foreground transition-colors hover:text-foreground/80",
@@ -203,15 +194,6 @@ export function Header() {
                   )}
                 >
                   Contact
-                </Link>
-                <Link
-                  href="/stories"
-                  className={cn(
-                    "text-foreground transition-colors hover:text-foreground/80",
-                    pathname === "/stories" && "text-emerald-600 dark:text-emerald-400 font-medium",
-                  )}
-                >
-                  Stories
                 </Link>
               </nav>
             </SheetContent>

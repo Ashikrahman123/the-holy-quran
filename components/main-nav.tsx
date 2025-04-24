@@ -1,67 +1,110 @@
-"use client"
-
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Mountain } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Menu } from "lucide-react"
 
 export function MainNav() {
-  const pathname = usePathname()
-
-  const isActive = (path: string) => {
-    if (path === "/" && pathname === "/") return true
-    if (path !== "/" && pathname.startsWith(path)) return true
-    return false
-  }
-
   return (
-    <nav className="hidden md:flex md:gap-6 lg:gap-8">
-      <Link
-        href="/"
-        className={`text-sm font-medium transition-colors hover:text-emerald-600 ${
-          isActive("/") ? "text-emerald-600" : "text-foreground"
-        }`}
-      >
-        Home
+    <div className="flex items-center gap-6 md:gap-10">
+      <Link href="/" className="flex items-center space-x-2">
+        <Mountain className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+        <span className="hidden font-bold sm:inline-block">The Holy Quran</span>
       </Link>
-      <Link
-        href="/read"
-        className={`text-sm font-medium transition-colors hover:text-emerald-600 ${
-          isActive("/read") ? "text-emerald-600" : "text-foreground"
-        }`}
-      >
-        Read Quran
-      </Link>
-      <Link
-        href="/listen"
-        className={`text-sm font-medium transition-colors hover:text-emerald-600 ${
-          isActive("/listen") ? "text-emerald-600" : "text-foreground"
-        }`}
-      >
-        Listen
-      </Link>
-      <Link
-        href="/search"
-        className={`text-sm font-medium transition-colors hover:text-emerald-600 ${
-          isActive("/search") ? "text-emerald-600" : "text-foreground"
-        }`}
-      >
-        Search
-      </Link>
-      <Link
-        href="/bookmarks"
-        className={`text-sm font-medium transition-colors hover:text-emerald-600 ${
-          isActive("/bookmarks") ? "text-emerald-600" : "text-foreground"
-        }`}
-      >
-        Bookmarks
-      </Link>
-      <Link
-        href="/resources"
-        className={`text-sm font-medium transition-colors hover:text-emerald-600 ${
-          isActive("/resources") ? "text-emerald-600" : "text-foreground"
-        }`}
-      >
-        Resources
-      </Link>
-    </nav>
+      <nav className="hidden gap-6 md:flex">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="link" className="text-foreground px-0">
+              Read
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem asChild>
+              <Link href="/read">All Surahs</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/read/1">Al-Fatihah</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/read/36">Ya-Sin</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/read/55">Ar-Rahman</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/read/67">Al-Mulk</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="link" className="text-foreground px-0">
+              Listen
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem asChild>
+              <Link href="/listen">All Reciters</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/listen?reciter=7">Mishary Rashid Alafasy</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/listen?reciter=1">Abdul Basit Abdul Samad</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/listen?reciter=3">Abdul Rahman Al-Sudais</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Link href="/search" className="text-foreground transition-colors hover:text-foreground/80">
+          Search
+        </Link>
+        <Link href="/bookmarks" className="text-foreground transition-colors hover:text-foreground/80">
+          Bookmarks
+        </Link>
+        <Link href="/about" className="text-foreground transition-colors hover:text-foreground/80">
+          About
+        </Link>
+        <Link href="/contact" className="text-foreground transition-colors hover:text-foreground/80">
+          Contact
+        </Link>
+      </nav>
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="md:hidden">
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle menu</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left">
+          <Link href="/" className="mb-8 flex items-center space-x-2">
+            <Mountain className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+            <span className="font-bold">The Holy Quran</span>
+          </Link>
+          <nav className="flex flex-col gap-4">
+            <Link href="/read" className="text-foreground transition-colors hover:text-foreground/80">
+              Read Quran
+            </Link>
+            <Link href="/listen" className="text-foreground transition-colors hover:text-foreground/80">
+              Listen
+            </Link>
+            <Link href="/search" className="text-foreground transition-colors hover:text-foreground/80">
+              Search
+            </Link>
+            <Link href="/bookmarks" className="text-foreground transition-colors hover:text-foreground/80">
+              Bookmarks
+            </Link>
+            <Link href="/about" className="text-foreground transition-colors hover:text-foreground/80">
+              About
+            </Link>
+            <Link href="/contact" className="text-foreground transition-colors hover:text-foreground/80">
+              Contact
+            </Link>
+          </nav>
+        </SheetContent>
+      </Sheet>
+    </div>
   )
 }

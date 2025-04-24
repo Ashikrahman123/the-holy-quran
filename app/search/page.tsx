@@ -18,10 +18,8 @@ import { Header } from "@/components/header"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { LANGUAGES, type Language } from "@/lib/language"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useRouter } from "next/navigation"
 
 export default function SearchPage() {
-  const router = useRouter()
   const { preferences } = useUserPreferences()
   const [searchTerm, setSearchTerm] = useState("")
   const [results, setResults] = useState<SearchResult[]>([])
@@ -75,7 +73,7 @@ export default function SearchPage() {
       const chapterNumber = Number.parseInt(searchTerm)
       if (!isNaN(chapterNumber) && chapterNumber >= 1 && chapterNumber <= 114) {
         // Redirect to the chapter page
-        router.push(`/read/${chapterNumber}`)
+        window.location.href = `/read/${chapterNumber}`
         return
       }
 
@@ -84,7 +82,7 @@ export default function SearchPage() {
       const verseMatch = searchTerm.match(verseRegex)
       if (verseMatch) {
         const [, surah, verse] = verseMatch
-        router.push(`/read/${surah}?highlight=${verse}#verse-${verse}`)
+        window.location.href = `/read/${surah}#verse-${verse}`
         return
       }
 
@@ -97,7 +95,7 @@ export default function SearchPage() {
       )
 
       if (matchedChapter) {
-        router.push(`/read/${matchedChapter.id}`)
+        window.location.href = `/read/${matchedChapter.id}`
         return
       }
 
@@ -107,27 +105,7 @@ export default function SearchPage() {
       if (data.search.results.length === 0) {
         setError(`No results found for "${searchTerm}". Please try a different search term.`)
       } else {
-        // Ensure all search results have the necessary properties
-        const processedResults = data.search.results.map((result) => {
-          // Make sure we have a valid verse_key
-          if (!result.verse_key && result.surah && result.verse) {
-            result.verse_key = `${result.surah}:${result.verse}`
-          }
-
-          // Ensure translations is an array
-          if (!result.translations) {
-            result.translations = [{ text: result.text || "" }]
-          }
-
-          // Ensure highlighted exists
-          if (!result.highlighted) {
-            result.highlighted = { text: result.text || "" }
-          }
-
-          return result
-        })
-
-        setResults(processedResults)
+        setResults(data.search.results)
 
         // Save to recent searches
         const newSearch = {
@@ -165,13 +143,13 @@ export default function SearchPage() {
 
   const handleBookmark = (result: SearchResult) => {
     try {
-      const verseKey = result.verse_key || `${result.surah}:${result.verse}`
+      const verseKey = `${result.surah}:${result.verse}`
       if (!isBookmarked(verseKey)) {
         addBookmark({
           verseKey,
-          chapterName: result.surah?.toString() || "",
-          verseText: result.text || "",
-          translation: result.translations?.[0]?.text || result.text || "",
+          chapterName: result.surah.toString(),
+          verseText: result.text,
+          translation: result.text,
         })
 
         toast({
@@ -292,17 +270,15 @@ export default function SearchPage() {
               <h2 className="text-xl font-semibold">Search Results for "{searchTerm}"</h2>
               <div className="space-y-4">
                 {results.map((result, index) => {
-                  const verseKey = result.verse_key || `${result.surah}:${result.verse}`
-                  const [surahNum, verseNum] = verseKey.split(":").map(Number)
-
+                  const verseKey = `${result.surah}:${result.verse}`
                   return (
                     <div key={index} className="rounded-lg border p-4">
                       <div className="mb-2 flex items-center justify-between">
                         <Link
-                          href={`/read/${surahNum}?highlight=${verseNum}#verse-${verseNum}`}
+                          href={`/read/${result.surah}#verse-${result.verse}`}
                           className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
                         >
-                          Surah {surahNum} : Verse {verseNum}
+                          Surah {result.surah} : Verse {result.verse}
                         </Link>
                         <div className="flex gap-2">
                           <Button
@@ -314,7 +290,7 @@ export default function SearchPage() {
                             <Bookmark className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                            <Link href={`/read/${surahNum}?highlight=${verseNum}#verse-${verseNum}`}>
+                            <Link href={`/read/${result.surah}#verse-${result.verse}`}>
                               <ExternalLink className="h-4 w-4" />
                             </Link>
                           </Button>
@@ -326,7 +302,7 @@ export default function SearchPage() {
                           dir="rtl"
                           style={{ fontFamily: "Amiri, serif" }}
                         >
-                          {typeof result.text === "string" ? result.text : ""}
+                          {result.text}
                         </p>
                       </div>
                       <div className="border-t pt-3">
@@ -335,13 +311,7 @@ export default function SearchPage() {
                           dir={currentLanguage.direction}
                           style={{ fontFamily: currentLanguage.fontFamily }}
                         >
-                          {result.translations &&
-                          result.translations[0] &&
-                          typeof result.translations[0].text === "string"
-                            ? result.translations[0].text
-                            : typeof result.text === "string"
-                              ? result.text
-                              : ""}
+                          {result.text}
                         </p>
                       </div>
                     </div>

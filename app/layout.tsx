@@ -4,8 +4,6 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Inter } from "next/font/google"
 import type { Metadata } from "next"
 import { UserPreferencesProvider } from "@/contexts/user-preferences-context"
-import { AudioProvider } from "@/contexts/audio-context"
-import { FloatingAudioPlayer } from "@/components/floating-audio-player"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -35,12 +33,9 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <UserPreferencesProvider>
-          <AudioProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-              {children}
-              <FloatingAudioPlayer />
-            </ThemeProvider>
-          </AudioProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            {children}
+          </ThemeProvider>
         </UserPreferencesProvider>
       </body>
     </html>
