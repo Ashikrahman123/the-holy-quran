@@ -142,7 +142,7 @@ export default function ContactPage() {
               <div>
                 <h2 className="mb-6 text-xl font-semibold">Connect With Us</h2>
                 <div className="flex gap-4">
-                  <Link href="#" className="rounded-full bg-muted p-2 hover:bg-muted/80">
+                  <Link href="https://www.facebook.com/share/1AQo5CHwYF/?mibextid=wwXIfr" className="rounded-full bg-muted p-2 hover:bg-muted/80">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -160,7 +160,7 @@ export default function ContactPage() {
                     <span className="sr-only">Facebook</span>
                   </Link>
 
-                  <Link href="#" className="rounded-full bg-muted p-2 hover:bg-muted/80">
+                  <Link href="https://x.com/ashikr142?s=11" className="rounded-full bg-muted p-2 hover:bg-muted/80">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -178,7 +178,7 @@ export default function ContactPage() {
                     <span className="sr-only">Twitter</span>
                   </Link>
 
-                  <Link href="#" className="rounded-full bg-muted p-2 hover:bg-muted/80">
+                  <Link href="https://www.instagram.com/mohamed_ashik_rahman_/" className="rounded-full bg-muted p-2 hover:bg-muted/80">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -198,7 +198,7 @@ export default function ContactPage() {
                     <span className="sr-only">Instagram</span>
                   </Link>
 
-                  <Link href="#" className="rounded-full bg-muted p-2 hover:bg-muted/80">
+                  <Link href="https://www.linkedin.com/in/mohamed-asik-rahman-ameerdeen-2661b01b4?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app" className="rounded-full bg-muted p-2 hover:bg-muted/80">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -218,7 +218,7 @@ export default function ContactPage() {
                     <span className="sr-only">LinkedIn</span>
                   </Link>
 
-                  <Link href="#" className="rounded-full bg-muted p-2 hover:bg-muted/80">
+                  <Link href="https://youtube.com/@islamandinnovations?si=CKt6nmKUuz9Otpsc" className="rounded-full bg-muted p-2 hover:bg-muted/80">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -240,15 +240,18 @@ export default function ContactPage() {
               </div>
 
               <div className="rounded-lg border bg-muted/30 p-6">
-                <h2 className="mb-4 text-xl font-semibold">Our Location</h2>
-                <div className="aspect-video overflow-hidden rounded-md border bg-muted">
-                  {/* Map placeholder - in a real implementation, this would be an actual map */}
-                  <div className="flex h-full items-center justify-center">
-                    <MapPin className="mr-2 h-6 w-6 text-muted-foreground" />
-                    <span className="text-muted-foreground">Map would be displayed here</span>
-                  </div>
-                </div>
-              </div>
+  <h2 className="mb-4 text-xl font-semibold">Our Location</h2>
+  <div className="aspect-video overflow-hidden rounded-md border bg-muted">
+    <iframe
+      src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d7838.004407170258!2d78.69155329603733!3d10.811142459394128!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sin!4v1745618476265!5m2!1sen!2sin"
+      className="w-full h-full border-0"
+      allowFullScreen=""
+      loading="lazy"
+      referrerPolicy="no-referrer-when-downgrade"
+    ></iframe>
+  </div>
+</div>
+
             </div>
           </div>
         </div>
