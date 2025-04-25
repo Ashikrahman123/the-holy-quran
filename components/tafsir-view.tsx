@@ -48,6 +48,10 @@ export function TafsirView({ verseKey }: TafsirViewProps) {
     return (
       <div className="text-center py-8">
         <p className="text-muted-foreground mb-4">{error}</p>
+        <p className="text-sm text-muted-foreground mb-4">
+          We're experiencing issues connecting to our tafsir database. This might be due to network issues or temporary
+          API unavailability.
+        </p>
         <Button onClick={fetchTafsir} className="gap-2">
           <RefreshCw className="h-4 w-4" />
           Try Again

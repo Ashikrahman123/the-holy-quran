@@ -30,11 +30,9 @@ export function MultiTranslationView({
   const [expanded, setExpanded] = useState(false)
   const [activeTab, setActiveTab] = useState<string>("all")
 
-  // Always show Arabic and primary language, then others when expanded
+  // Always show primary language and Tamil, then others when expanded
   const prioritizedTranslations = [
-    // Arabic is always first if it exists in translations
-    ...translations.filter((t) => t.language === "ar"),
-    // Primary language is second if it's not Arabic
+    // Primary language is first (if it's not Arabic since Arabic is shown above)
     ...translations.filter((t) => t.language === primaryLanguage && t.language !== "ar"),
     // Then English if it's not the primary language
     ...translations.filter((t) => t.language === "en" && t.language !== primaryLanguage && t.language !== "ar"),
@@ -42,9 +40,14 @@ export function MultiTranslationView({
     ...translations.filter(
       (t) => t.language === "ta" && t.language !== primaryLanguage && t.language !== "ar" && t.language !== "en",
     ),
-    // Then all others
+    // Then all others except Arabic and Hindi (hi)
     ...translations.filter(
-      (t) => t.language !== "ar" && t.language !== primaryLanguage && t.language !== "en" && t.language !== "ta",
+      (t) =>
+        t.language !== "ar" &&
+        t.language !== "hi" &&
+        t.language !== primaryLanguage &&
+        t.language !== "en" &&
+        t.language !== "ta",
     ),
   ]
 
@@ -126,8 +129,9 @@ export function MultiTranslationView({
               className="w-full mt-2"
               onClick={() => {
                 // Find a language that's not already in the translations
+                // and is not Arabic or Hindi
                 const availableLanguages = LANGUAGES.map((lang) => lang.code).filter(
-                  (code) => !translations.some((t) => t.language === code),
+                  (code) => !translations.some((t) => t.language === code) && code !== "ar" && code !== "hi",
                 )
                 if (availableLanguages.length > 0) {
                   onAddLanguage(availableLanguages[0])
