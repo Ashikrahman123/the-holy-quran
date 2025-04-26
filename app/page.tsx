@@ -18,6 +18,9 @@ import { WordScramble } from "@/components/word-scramble"
 import { MemoryMatch } from "@/components/memory-match"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { DailyHadith } from "@/components/daily-hadith"
+import { IslamicCalendar } from "@/components/islamic-calendar"
+import { Calendar, Clock } from "lucide-react"
 
 export default function HomePage() {
   const [featuredSurahs, setFeaturedSurahs] = useState<Chapter[]>([])
@@ -364,43 +367,168 @@ export default function HomePage() {
 
         <section className="border-t bg-muted/30">
           <div className="container py-12 sm:py-16 md:py-20">
-            <div className="grid gap-8 md:grid-cols-3">
-              <div className="md:col-span-2">
-                <h2 className="mb-6 text-2xl font-bold">Prayer Times</h2>
-                <PrayerTimesWidget />
-              </div>
-              <div>
-                <h2 className="mb-6 text-2xl font-bold">Quick Links</h2>
-                <div className="space-y-2">
-                  <Link
-                    href="/bookmarks"
-                    className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted"
-                  >
-                    <span>My Bookmarks</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Link>
-                  <Link
-                    href="/read/36"
-                    className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted"
-                  >
-                    <span>Surah Ya-Sin</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Link>
-                  <Link
-                    href="/read/55"
-                    className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted"
-                  >
-                    <span>Surah Ar-Rahman</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Link>
-                  <Link
-                    href="/read/67"
-                    className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted"
-                  >
-                    <span>Surah Al-Mulk</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Link>
+            <div className="mb-10 text-center">
+              <h2 className="text-2xl font-bold sm:text-3xl">Islamic Resources</h2>
+              <p className="mt-4 text-muted-foreground">Daily guidance and spiritual resources for Muslims</p>
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-12">
+              {/* Main Content - Left Side (8 columns on md+) */}
+              <div className="md:col-span-8 space-y-8">
+                {/* Daily Ayah Card */}
+                <Card className="overflow-hidden">
+                  <CardHeader className="bg-emerald-50 dark:bg-emerald-950/30">
+                    <CardTitle className="flex items-center gap-2">
+                      <BookOpen className="h-5 w-5" />
+                      Daily Verse of Reflection
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <DailyAyah />
+                  </CardContent>
+                </Card>
+
+                {/* Islamic Articles Section */}
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold">Islamic Articles</h3>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base">The Importance of Prayer</CardTitle>
+                      </CardHeader>
+                      <CardContent className="pb-2">
+                        <p className="text-sm text-muted-foreground">
+                          Prayer is the cornerstone of faith and the direct connection between the servant and their
+                          Lord.
+                        </p>
+                      </CardContent>
+                      <CardFooter>
+                        <Button variant="ghost" size="sm" className="gap-1">
+                          <ChevronRight className="h-4 w-4" />
+                          Read More
+                        </Button>
+                      </CardFooter>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base">Understanding Ramadan</CardTitle>
+                      </CardHeader>
+                      <CardContent className="pb-2">
+                        <p className="text-sm text-muted-foreground">
+                          Ramadan is a month of fasting, prayer, reflection and community for Muslims worldwide.
+                        </p>
+                      </CardContent>
+                      <CardFooter>
+                        <Button variant="ghost" size="sm" className="gap-1">
+                          <ChevronRight className="h-4 w-4" />
+                          Read More
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </div>
                 </div>
+
+                {/* Daily Hadith Section */}
+                <Card>
+                  <CardHeader className="bg-emerald-50 dark:bg-emerald-950/30">
+                    <CardTitle className="flex items-center gap-2">
+                      <BookMarked className="h-5 w-5" />
+                      Hadith of the Day
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <DailyHadith />
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Sidebar - Right Side (4 columns on md+) */}
+              <div className="md:col-span-4 space-y-6">
+                {/* Prayer Times Widget */}
+                <Card className="overflow-hidden">
+                  <CardHeader className="bg-emerald-50 dark:bg-emerald-950/30 pb-4">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Clock className="h-5 w-5" />
+                      Prayer Times
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <PrayerTimesWidget />
+                  </CardContent>
+                </Card>
+
+                {/* Islamic Calendar */}
+                <Card className="overflow-hidden">
+                  <CardHeader className="bg-emerald-50 dark:bg-emerald-950/30 pb-4">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Calendar className="h-5 w-5" />
+                      Islamic Calendar
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <IslamicCalendar />
+                  </CardContent>
+                </Card>
+
+                {/* Quick Links */}
+                <Card>
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg">Quick Links</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2">
+                      <Link
+                        href="/bookmarks"
+                        className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted"
+                      >
+                        <span>My Bookmarks</span>
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
+                      <Link
+                        href="/read/36"
+                        className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted"
+                      >
+                        <span>Surah Ya-Sin</span>
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
+                      <Link
+                        href="/read/55"
+                        className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted"
+                      >
+                        <span>Surah Ar-Rahman</span>
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
+                      <Link
+                        href="/read/67"
+                        className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted"
+                      >
+                        <span>Surah Al-Mulk</span>
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
+                      <Link
+                        href="/read/112"
+                        className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted"
+                      >
+                        <span>Surah Al-Ikhlas</span>
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Islamic Quotes */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Islamic Quote</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <blockquote className="border-l-4 border-emerald-500 pl-4 italic text-muted-foreground">
+                      "The world is a prison for the believer and a paradise for the disbeliever."
+                      <footer className="mt-2 text-sm font-medium">— Prophet Muhammad ﷺ</footer>
+                    </blockquote>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </div>

@@ -883,62 +883,71 @@ export async function getPrayerTimes(city: string, country: string): Promise<Pra
 }
 
 // Function to get Tafsir (commentary) for a verse
-export async function getTafsir(verseKey: string, language = "en"): Promise<string> {
+export async function getTafsir(surahNumber: number, tafsirName = "ibn-kathir") {
   try {
-    // Try the primary tafsir endpoint
-    const response = await fetch(`${QURAN_API_BASE}/tafsirs/en-tafisr-ibn-kathir?verse_key=${verseKey}`)
+    console.log(`Fetching tafsir for surah ${surahNumber}, tafsir: ${tafsirName}`)
+
+    // Try the primary endpoint
+    const response = await fetch(`https://api.quran.com/api/v4/tafsirs/${tafsirName}/by_surah/${surahNumber}`)
 
     if (!response.ok) {
-      console.warn(`Primary tafsir API failed with status ${response.status} for verse ${verseKey}`)
-      // Try alternative tafsir endpoint
-      const altResponse = await fetch(`${QURAN_API_BASE}/tafsirs/169?verse_key=${verseKey}`)
+      console.log(`Primary tafsir endpoint failed with status ${response.status}, trying alternative endpoint`)
 
-      if (!altResponse.ok) {
-        throw new Error(`Failed to fetch tafsir: ${altResponse.status}`)
+      // If the primary endpoint fails, try an alternative endpoint
+      const alternativeResponse = await fetch(
+        `https://api.qurancdn.com/api/qdc/tafsirs/${tafsirName}/by_surah/${surahNumber}`,
+      )
+
+      if (!alternativeResponse.ok) {
+        console.log(`Alternative tafsir endpoint also failed with status ${alternativeResponse.status}`)
+        throw new Error(`Failed to fetch tafsir: ${alternativeResponse.status}`)
       }
 
-      const altData = await altResponse.json()
-      if (altData.tafsirs && altData.tafsirs.length > 0) {
-        return altData.tafsirs[0].text
-      }
-      throw new Error("No tafsir content in response")
+      return await alternativeResponse.json()
     }
 
-    const data = await response.json()
-    if (data.tafsirs && data.tafsirs.length > 0) {
-      return data.tafsirs[0].text
-    }
-
-    // If we get here, the API returned OK but no tafsir content
-    return getFallbackTafsir(verseKey)
+    return await response.json()
   } catch (error) {
     console.error("Error fetching tafsir:", error)
-    return getFallbackTafsir(verseKey)
-  }
-}
 
-// Add this helper function for fallback tafsir content
-function getFallbackTafsir(verseKey: string): string {
-  // Extract surah and verse numbers
-  const [surahNum, verseNum] = verseKey.split(":").map(Number)
-
-  // Fallback tafsir for Al-Fatihah (Surah 1)
-  if (surahNum === 1) {
-    const fatihaTafsir: Record<number, string> = {
-      1: "<p>This verse is known as the Basmalah and serves as an opening to all chapters of the Quran except for Surah At-Tawbah. It emphasizes beginning all actions with the name of Allah, acknowledging His mercy and compassion.</p>",
-      2: "<p>This verse praises Allah as the Lord of all worlds, acknowledging His sovereignty over all creation. Ibn Kathir explains that 'Al-Hamd' means praise accompanied with love and glorification, and 'Rabb' signifies that Allah is the Creator, Provider, and Sustainer of all existence.</p>",
-      3: "<p>This verse emphasizes Allah's attributes of mercy. 'Ar-Rahman' refers to the general mercy that encompasses all creation, while 'Ar-Raheem' refers to the special mercy reserved for believers.</p>",
-      4: "<p>This verse acknowledges Allah's absolute authority on the Day of Judgment. Ibn Kathir notes that while Allah is the Master of all days, the Day of Judgment is specifically mentioned because on that day, no one will claim any authority except Allah.</p>",
-      5: "<p>This verse represents the essence of worship in Islam - dedicating worship exclusively to Allah and seeking help only from Him. It establishes the relationship between the servant and Allah, emphasizing complete dependence on Him.</p>",
-      6: "<p>This verse is a supplication for guidance to the Straight Path, which represents the true religion of Islam. Ibn Kathir explains that this guidance includes both being shown the path and being helped to follow it.</p>",
-      7: "<p>This verse clarifies the Straight Path as the way of those whom Allah has blessed - the prophets, the truthful, the martyrs, and the righteous. It also warns against following the paths of those who earned Allah's anger by knowing the truth but not following it, or those who went astray by following without proper knowledge.</p>",
+    // Provide detailed fallback content for Surah Al-Fatihah (1)
+    if (surahNumber === 1) {
+      return {
+        tafsir: {
+          id: 1,
+          name: "Tafsir Ibn Kathir",
+          text: [
+            {
+              id: 1,
+              text: "Surah Al-Fatihah is the opening chapter of the Quran. It is known as 'The Opening' and is recited in every prayer. Ibn Kathir explains that this Surah teaches us how to praise Allah, acknowledge His sovereignty, and seek His guidance. The phrase 'Guide us to the straight path' is a supplication for Allah to show us the right way in all our affairs.",
+              verse_id: 1,
+              verse_key: "1:1-7",
+            },
+          ],
+          resource_id: 1,
+          resource_name: "Fallback Tafsir Content",
+        },
+      }
     }
 
-    return fatihaTafsir[verseNum] || "<p>Tafsir for this verse is currently unavailable. Please try again later.</p>"
+    // Generic fallback for other surahs
+    return {
+      tafsir: {
+        id: 1,
+        name: "Tafsir Ibn Kathir",
+        text: [
+          {
+            id: 1,
+            text: "We apologize, but the tafsir content for this surah could not be loaded at this time. Please try again later or check another surah. The API service may be temporarily unavailable.",
+            verse_id: 1,
+            verse_key: `${surahNumber}:1`,
+          },
+        ],
+        resource_id: 1,
+        resource_name: "Fallback Tafsir Content",
+      },
+    }
   }
-
-  // Generic fallback message for other surahs
-  return "<p>The tafsir (commentary) for this verse is currently unavailable from our sources. Please try again later or refer to other Islamic resources for explanation of this verse.</p>"
 }
 
 import { getLanguage as getLanguageFromStorage } from "./language"

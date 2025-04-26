@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { getTafsir } from "@/lib/api"
 import { Button } from "@/components/ui/button"
-import { RefreshCw } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface TafsirViewProps {
@@ -14,6 +13,7 @@ export function TafsirView({ verseKey }: TafsirViewProps) {
   const [tafsir, setTafsir] = useState<string>("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const fetchTafsir = async () => {
     setLoading(true)
@@ -46,14 +46,22 @@ export function TafsirView({ verseKey }: TafsirViewProps) {
 
   if (error) {
     return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground mb-4">{error}</p>
-        <p className="text-sm text-muted-foreground mb-4">
-          We're experiencing issues connecting to our tafsir database. This might be due to network issues or temporary
-          API unavailability.
+      <div className="p-4 rounded-md border border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800">
+        <h3 className="text-lg font-semibold text-red-800 dark:text-red-300 mb-2">Error Loading Tafsir</h3>
+        <p className="text-red-700 dark:text-red-400 mb-4">
+          {error.includes("404")
+            ? "The tafsir content for this surah could not be found. The API may not have this specific tafsir available."
+            : "There was an error loading the tafsir content. This could be due to network issues or API limitations."}
         </p>
-        <Button onClick={fetchTafsir} className="gap-2">
-          <RefreshCw className="h-4 w-4" />
+        <Button
+          variant="outline"
+          onClick={() => {
+            setError(null)
+            setIsLoading(true)
+            fetchTafsir()
+          }}
+          className="bg-white dark:bg-gray-800"
+        >
           Try Again
         </Button>
       </div>
