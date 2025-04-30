@@ -21,6 +21,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { DailyHadith } from "@/components/daily-hadith"
 import { IslamicCalendar } from "@/components/islamic-calendar"
 import { Calendar, Clock } from "lucide-react"
+import { DhikrCounter } from "@/components/dhikr-counter"
+import { IslamicChatbot } from "@/components/islamic-chatbot"
 
 export default function HomePage() {
   const [featuredSurahs, setFeaturedSurahs] = useState<Chapter[]>([])
@@ -209,6 +211,19 @@ export default function HomePage() {
                 </CardContent>
               </Card>
             </div>
+          </div>
+        </section>
+
+        {/* Dhikr Counter and Islamic Chatbot Section */}
+        <section className="container py-12">
+          <div className="mb-10 text-center">
+            <h2 className="text-2xl font-bold sm:text-3xl">Islamic Tools</h2>
+            <p className="mt-4 text-muted-foreground">Enhance your spiritual journey with these interactive tools</p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2">
+            <DhikrCounter />
+            <IslamicChatbot />
           </div>
         </section>
 

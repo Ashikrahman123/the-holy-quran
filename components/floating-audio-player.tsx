@@ -19,7 +19,7 @@ export function FloatingAudioPlayer() {
   }
 
   // Don't render if no audio is loaded
-  if (!audioState.audioUrl) return null
+  if (!audioState.audioUrl || (!audioState.isPlaying && audioState.currentTime === 0)) return null
 
   return (
     <div

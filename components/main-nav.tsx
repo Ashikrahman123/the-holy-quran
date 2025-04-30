@@ -12,10 +12,10 @@ export function MainNav() {
         <Mountain className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
         <span className="hidden font-bold sm:inline-block">The Holy Quran</span>
       </Link>
-      <nav className="hidden gap-6 md:flex">
+      <nav className="hidden gap-6 md:flex items-center">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="link" className="text-foreground px-0">
+            <Button variant="link" className="text-foreground px-0 h-auto font-normal">
               Read
             </Button>
           </DropdownMenuTrigger>
@@ -39,7 +39,7 @@ export function MainNav() {
         </DropdownMenu>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="link" className="text-foreground px-0">
+            <Button variant="link" className="text-foreground px-0 h-auto font-normal">
               Listen
             </Button>
           </DropdownMenuTrigger>
@@ -58,18 +58,18 @@ export function MainNav() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Link href="/search" className="text-foreground transition-colors hover:text-foreground/80">
-          Search
-        </Link>
-        <Link href="/bookmarks" className="text-foreground transition-colors hover:text-foreground/80">
-          Bookmarks
-        </Link>
-        <Link href="/about" className="text-foreground transition-colors hover:text-foreground/80">
-          About
-        </Link>
-        <Link href="/contact" className="text-foreground transition-colors hover:text-foreground/80">
-          Contact
-        </Link>
+        <Button variant="link" className="text-foreground px-0 h-auto font-normal" asChild>
+          <Link href="/search">Search</Link>
+        </Button>
+        <Button variant="link" className="text-foreground px-0 h-auto font-normal" asChild>
+          <Link href="/bookmarks">Bookmarks</Link>
+        </Button>
+        <Button variant="link" className="text-foreground px-0 h-auto font-normal" asChild>
+          <Link href="/about">About</Link>
+        </Button>
+        <Button variant="link" className="text-foreground px-0 h-auto font-normal" asChild>
+          <Link href="/contact">Contact</Link>
+        </Button>
       </nav>
       <Sheet>
         <SheetTrigger asChild>

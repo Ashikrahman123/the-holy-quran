@@ -173,37 +173,16 @@ export default function SearchPage() {
     }
   }
 
+  // Simplify the search functionality by removing the problematic keyword concept
+
+  // Replace the popularTopics array with a simpler version
   const popularTopics = [
-    {
-      name: "Prayer (Salah)",
-      keywords: ["prayer", "salah", "salat"],
-      description: "Verses related to the importance and method of prayer in Islam",
-    },
-    {
-      name: "Mercy",
-      keywords: ["mercy", "compassion", "rahman", "raheem"],
-      description: "Verses highlighting Allah's mercy and compassion towards His creation",
-    },
-    {
-      name: "Patience (Sabr)",
-      keywords: ["patience", "sabr"],
-      description: "Verses encouraging patience during hardship and trials",
-    },
-    {
-      name: "Forgiveness",
-      keywords: ["forgiveness", "forgive", "pardon"],
-      description: "Verses about seeking and granting forgiveness",
-    },
-    {
-      name: "Gratitude (Shukr)",
-      keywords: ["gratitude", "thankful", "shukr"],
-      description: "Verses emphasizing the importance of being grateful to Allah",
-    },
-    {
-      name: "Charity",
-      keywords: ["charity", "giving", "zakat", "sadaqah"],
-      description: "Verses about the virtues of charity and helping others",
-    },
+    { name: "Prayer", keyword: "prayer" },
+    { name: "Mercy", keyword: "mercy" },
+    { name: "Patience", keyword: "patience" },
+    { name: "Forgiveness", keyword: "forgiveness" },
+    { name: "Gratitude", keyword: "gratitude" },
+    { name: "Charity", keyword: "charity" },
   ]
 
   const currentLanguage = LANGUAGES.find((lang) => lang.code === preferences.language) || LANGUAGES[0]
@@ -240,18 +219,19 @@ export default function SearchPage() {
                 {loading ? "Searching..." : "Search"}
               </Button>
             </div>
+            {/* Update the popular topics buttons in the search bar */}
             <div className="mt-2 flex flex-wrap gap-2">
-              {popularTopics.slice(0, 5).map((topic, index) => (
+              {popularTopics.map((topic, index) => (
                 <Button
                   key={index}
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    setSearchTerm(topic.keywords[0])
+                    setSearchTerm(topic.keyword)
                     handleSearch()
                   }}
                 >
-                  {topic.name.split(" ")[0]}
+                  {topic.name}
                 </Button>
               ))}
             </div>
@@ -360,18 +340,18 @@ export default function SearchPage() {
 
                 <div>
                   <h2 className="mb-3 sm:mb-4 text-lg sm:text-xl font-semibold">Popular Topics</h2>
+                  {/* Update the popular topics section in the "all" tab */}
                   <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {popularTopics.map((topic, index) => (
                       <div
                         key={index}
                         className="rounded-lg border p-3 sm:p-4 transition-all hover:border-emerald-200 hover:shadow-sm dark:hover:border-emerald-800 cursor-pointer"
                         onClick={() => {
-                          setSearchTerm(topic.keywords[0])
+                          setSearchTerm(topic.keyword)
                           handleSearch()
                         }}
                       >
                         <h3 className="mb-2 font-medium">{topic.name}</h3>
-                        <p className="mb-2 text-xs sm:text-sm text-muted-foreground">{topic.description}</p>
                         <div className="flex items-center text-xs text-emerald-600 dark:text-emerald-400">
                           <Button variant="link" className="h-auto p-0 text-xs text-emerald-600 dark:text-emerald-400">
                             Search verses
@@ -431,6 +411,7 @@ export default function SearchPage() {
                     <CardDescription>Explore verses related to common Islamic topics</CardDescription>
                   </CardHeader>
                   <CardContent>
+                    {/* Update the topics tab content to use the simplified structure */}
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       {popularTopics.map((topic, index) => (
                         <Button
@@ -438,12 +419,11 @@ export default function SearchPage() {
                           variant="outline"
                           className="h-auto py-4 flex flex-col items-start text-left"
                           onClick={() => {
-                            setSearchTerm(topic.keywords[0])
+                            setSearchTerm(topic.keyword)
                             handleSearch()
                           }}
                         >
                           <span className="font-medium">{topic.name}</span>
-                          <span className="text-xs text-muted-foreground mt-1">{topic.description}</span>
                         </Button>
                       ))}
                     </div>
