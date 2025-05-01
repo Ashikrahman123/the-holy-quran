@@ -23,99 +23,71 @@ export function Header() {
             <span className="hidden font-bold sm:inline-block">The Holy Quran</span>
           </Link>
           <nav className="hidden gap-6 md:flex">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="link"
+            {[
+              {
+                href: "/read",
+                label: "Read",
+                dropdown: [
+                  { href: "/read", label: "All Surahs" },
+                  { href: "/read/1", label: "Al-Fatihah" },
+                  { href: "/read/36", label: "Ya-Sin" },
+                  { href: "/read/55", label: "Ar-Rahman" },
+                  { href: "/read/67", label: "Al-Mulk" },
+                ],
+              },
+              {
+                href: "/listen",
+                label: "Listen",
+                dropdown: [
+                  { href: "/listen", label: "All Reciters" },
+                  { href: "/listen?reciter=7", label: "Mishary Rashid Alafasy" },
+                  { href: "/listen?reciter=1", label: "Abdul Basit Abdul Samad" },
+                  { href: "/listen?reciter=3", label: "Abdul Rahman Al-Sudais" },
+                ],
+              },
+              { href: "/search", label: "Search" },
+              { href: "/bookmarks", label: "Bookmarks" },
+              { href: "/about", label: "About" },
+              { href: "/contact", label: "Contact" },
+            ].map((item) => {
+              if (item.dropdown) {
+                return (
+                  <DropdownMenu key={item.href}>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="link"
+                        className={cn(
+                          "text-foreground px-0 h-9 text-base font-normal",
+                          pathname.startsWith(item.href) && "text-emerald-600 dark:text-emerald-400 font-medium",
+                        )}
+                      >
+                        {item.label}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      {item.dropdown.map((dropdownItem) => (
+                        <DropdownMenuItem key={dropdownItem.href} asChild>
+                          <Link href={dropdownItem.href}>{dropdownItem.label}</Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )
+              }
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
                   className={cn(
-                    "text-foreground px-0 h-9",
-                    pathname.startsWith("/read") && "text-emerald-600 dark:text-emerald-400 font-medium",
+                    "flex items-center h-9 text-base font-normal text-foreground transition-colors hover:text-foreground/80",
+                    pathname === item.href && "text-emerald-600 dark:text-emerald-400 font-medium",
                   )}
                 >
-                  Read
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem asChild>
-                  <Link href="/read">All Surahs</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/read/1">Al-Fatihah</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/read/36">Ya-Sin</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/read/55">Ar-Rahman</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/read/67">Al-Mulk</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="link"
-                  className={cn(
-                    "text-foreground px-0 h-9",
-                    pathname.startsWith("/listen") && "text-emerald-600 dark:text-emerald-400 font-medium",
-                  )}
-                >
-                  Listen
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem asChild>
-                  <Link href="/listen">All Reciters</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/listen?reciter=7">Mishary Rashid Alafasy</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/listen?reciter=1">Abdul Basit Abdul Samad</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/listen?reciter=3">Abdul Rahman Al-Sudais</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Link
-              href="/search"
-              className={cn(
-                "flex items-center h-9 text-foreground transition-colors hover:text-foreground/80",
-                pathname === "/search" && "text-emerald-600 dark:text-emerald-400 font-medium",
-              )}
-            >
-              Search
-            </Link>
-            <Link
-              href="/bookmarks"
-              className={cn(
-                "flex items-center h-9 text-foreground transition-colors hover:text-foreground/80",
-                pathname === "/bookmarks" && "text-emerald-600 dark:text-emerald-400 font-medium",
-              )}
-            >
-              Bookmarks
-            </Link>
-            <Link
-              href="/about"
-              className={cn(
-                "flex items-center h-9 text-foreground transition-colors hover:text-foreground/80",
-                pathname === "/about" && "text-emerald-600 dark:text-emerald-400 font-medium",
-              )}
-            >
-              About
-            </Link>
-            <Link
-              href="/contact"
-              className={cn(
-                "flex items-center h-9 text-foreground transition-colors hover:text-foreground/80",
-                pathname === "/contact" && "text-emerald-600 dark:text-emerald-400 font-medium",
-              )}
-            >
-              Contact
-            </Link>
+                  {item.label}
+                </Link>
+              )
+            })}
           </nav>
         </div>
 

@@ -13,63 +13,58 @@ export function MainNav() {
         <span className="hidden font-bold sm:inline-block">The Holy Quran</span>
       </Link>
       <nav className="hidden gap-6 md:flex items-center">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="link" className="text-foreground px-0 h-auto font-normal">
-              Read
+        {[
+          {
+            href: "/read",
+            label: "Read",
+            dropdown: [
+              { href: "/read", label: "All Surahs" },
+              { href: "/read/1", label: "Al-Fatihah" },
+              { href: "/read/36", label: "Ya-Sin" },
+              { href: "/read/55", label: "Ar-Rahman" },
+              { href: "/read/67", label: "Al-Mulk" },
+            ],
+          },
+          {
+            href: "/listen",
+            label: "Listen",
+            dropdown: [
+              { href: "/listen", label: "All Reciters" },
+              { href: "/listen?reciter=7", label: "Mishary Rashid Alafasy" },
+              { href: "/listen?reciter=1", label: "Abdul Basit Abdul Samad" },
+              { href: "/listen?reciter=3", label: "Abdul Rahman Al-Sudais" },
+            ],
+          },
+          { href: "/search", label: "Search" },
+          { href: "/bookmarks", label: "Bookmarks" },
+          { href: "/about", label: "About" },
+          { href: "/contact", label: "Contact" },
+        ].map((item) => {
+          if (item.dropdown) {
+            return (
+              <DropdownMenu key={item.href}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="link" className="text-foreground px-0 h-9 text-base font-normal">
+                    {item.label}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {item.dropdown.map((dropdownItem) => (
+                    <DropdownMenuItem key={dropdownItem.href} asChild>
+                      <Link href={dropdownItem.href}>{dropdownItem.label}</Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )
+          }
+
+          return (
+            <Button key={item.href} variant="link" className="text-foreground px-0 h-9 text-base font-normal" asChild>
+              <Link href={item.href}>{item.label}</Link>
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem asChild>
-              <Link href="/read">All Surahs</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/read/1">Al-Fatihah</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/read/36">Ya-Sin</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/read/55">Ar-Rahman</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/read/67">Al-Mulk</Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="link" className="text-foreground px-0 h-auto font-normal">
-              Listen
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem asChild>
-              <Link href="/listen">All Reciters</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/listen?reciter=7">Mishary Rashid Alafasy</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/listen?reciter=1">Abdul Basit Abdul Samad</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/listen?reciter=3">Abdul Rahman Al-Sudais</Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Button variant="link" className="text-foreground px-0 h-auto font-normal" asChild>
-          <Link href="/search">Search</Link>
-        </Button>
-        <Button variant="link" className="text-foreground px-0 h-auto font-normal" asChild>
-          <Link href="/bookmarks">Bookmarks</Link>
-        </Button>
-        <Button variant="link" className="text-foreground px-0 h-auto font-normal" asChild>
-          <Link href="/about">About</Link>
-        </Button>
-        <Button variant="link" className="text-foreground px-0 h-auto font-normal" asChild>
-          <Link href="/contact">Contact</Link>
-        </Button>
+          )
+        })}
       </nav>
       <Sheet>
         <SheetTrigger asChild>

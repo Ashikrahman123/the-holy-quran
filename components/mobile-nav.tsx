@@ -26,56 +26,29 @@ export function MobileNav() {
   return (
     <div className="fixed bottom-0 left-0 z-50 w-full border-t bg-background md:hidden">
       <div className="grid h-16 grid-cols-5">
-        <Link href="/" className="flex flex-col items-center justify-center">
-          <Home
-            className={`h-5 w-5 ${isActive("/") ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}
-          />
-          <span
-            className={`mt-1 text-[10px] ${isActive("/") ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}
-          >
-            Home
-          </span>
-        </Link>
-        <Link href="/read" className="flex flex-col items-center justify-center">
-          <BookOpen
-            className={`h-5 w-5 ${isActive("/read") ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}
-          />
-          <span
-            className={`mt-1 text-[10px] ${isActive("/read") ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}
-          >
-            Read
-          </span>
-        </Link>
-        <Link href="/listen" className="flex flex-col items-center justify-center">
-          <Headphones
-            className={`h-5 w-5 ${isActive("/listen") ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}
-          />
-          <span
-            className={`mt-1 text-[10px] ${isActive("/listen") ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}
-          >
-            Listen
-          </span>
-        </Link>
-        <Link href="/search" className="flex flex-col items-center justify-center">
-          <Search
-            className={`h-5 w-5 ${isActive("/search") ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}
-          />
-          <span
-            className={`mt-1 text-[10px] ${isActive("/search") ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}
-          >
-            Search
-          </span>
-        </Link>
-        <Link href="/bookmarks" className="flex flex-col items-center justify-center">
-          <Bookmark
-            className={`h-5 w-5 ${isActive("/bookmarks") ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}
-          />
-          <span
-            className={`mt-1 text-[10px] ${isActive("/bookmarks") ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}
-          >
-            Bookmarks
-          </span>
-        </Link>
+        {[
+          { href: "/", label: "Home", icon: Home },
+          { href: "/read", label: "Read", icon: BookOpen },
+          { href: "/listen", label: "Listen", icon: Headphones },
+          { href: "/search", label: "Search", icon: Search },
+          { href: "/bookmarks", label: "Bookmarks", icon: Bookmark },
+        ].map((item) => {
+          const Icon = item.icon
+          const active = isActive(item.href)
+
+          return (
+            <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center">
+              <Icon
+                className={`h-5 w-5 ${active ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}
+              />
+              <span
+                className={`mt-1 text-[10px] ${active ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}
+              >
+                {item.label}
+              </span>
+            </Link>
+          )
+        })}
       </div>
     </div>
   )
