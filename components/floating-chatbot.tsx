@@ -16,68 +16,18 @@ interface Message {
   timestamp: Date
 }
 
-// Islamic knowledge base for common questions
-const knowledgeBase = [
-  {
-    keywords: ["prayer", "salah", "pray", "namaz", "salat"],
-    response:
-      "Prayer (Salah) is one of the Five Pillars of Islam. Muslims pray five times a day: Fajr (dawn), Dhuhr (noon), Asr (afternoon), Maghrib (sunset), and Isha (night). Each prayer consists of specific movements and recitations, fostering a direct connection with Allah.",
-  },
-  {
-    keywords: ["ramadan", "fasting", "fast", "sawm", "iftar", "suhoor"],
-    response:
-      "Ramadan is the ninth month of the Islamic calendar when Muslims fast from dawn until sunset. Fasting during Ramadan is one of the Five Pillars of Islam. It's a time of spiritual reflection, self-improvement, and heightened devotion.",
-  },
-  {
-    keywords: ["zakat", "charity", "give", "donation", "alms"],
-    response:
-      "Zakat is one of the Five Pillars of Islam, requiring Muslims to give 2.5% of their qualifying wealth to those in need. It purifies wealth and helps establish economic justice in society.",
-  },
-  {
-    keywords: ["hajj", "pilgrimage", "mecca", "kaaba", "umrah"],
-    response:
-      "Hajj is the annual Islamic pilgrimage to Mecca, Saudi Arabia, and is mandatory once in a lifetime for Muslims who are physically and financially capable. It's one of the Five Pillars of Islam and takes place during the Islamic month of Dhul Hijjah.",
-  },
-  {
-    keywords: ["quran", "koran", "recite", "surah", "ayah", "verse"],
-    response:
-      "The Quran is the holy book of Islam, believed to be the word of Allah as revealed to Prophet Muhammad ﷺ through the angel Gabriel over 23 years. It consists of 114 chapters (surahs) and serves as the primary source of Islamic guidance.",
-  },
-  {
-    keywords: ["prophet", "muhammad", "messenger", "sunnah", "hadith"],
-    response:
-      "Prophet Muhammad ﷺ is the final prophet in Islam, who received and transmitted the Quran. His life, actions, and sayings (Hadith) form the Sunnah, which is the second source of Islamic law and guidance after the Quran.",
-  },
-  {
-    keywords: ["halal", "haram", "permissible", "forbidden", "allowed", "prohibited"],
-    response:
-      "In Islam, actions and foods are categorized as halal (permissible) or haram (forbidden). This system guides Muslims in making choices aligned with Islamic principles, covering aspects from diet to business transactions.",
-  },
-  {
-    keywords: ["iman", "faith", "belief", "pillars of faith", "believe"],
-    response:
-      "Iman (faith) in Islam involves belief in: 1) Allah, 2) His Angels, 3) His Books, 4) His Messengers, 5) The Day of Judgment, and 6) Divine Decree. These six articles form the foundation of a Muslim's faith.",
-  },
-  {
-    keywords: ["dhikr", "remembrance", "tasbeeh", "subhanallah", "alhamdulillah", "allahu akbar"],
-    response:
-      "Dhikr refers to the remembrance of Allah through phrases like 'SubhanAllah' (Glory be to Allah), 'Alhamdulillah' (All praise is due to Allah), and 'Allahu Akbar' (Allah is the Greatest). Regular dhikr purifies the heart and brings one closer to Allah.",
-  },
-  {
-    keywords: ["dua", "supplication", "pray", "asking", "request"],
-    response:
-      "Dua is a personal supplication to Allah, where Muslims can ask for anything in their own words. It's a direct conversation with Allah and can be made at any time, though there are specific times when duas are more likely to be accepted.",
-  },
-]
-
-// Fallback responses when no match is found
-const fallbackResponses = [
-  "I'm still learning about Islamic topics. Could you rephrase your question?",
-  "That's a good question about Islam. Let me suggest consulting with a knowledgeable imam or scholar for a more detailed answer.",
-  "I don't have complete information on that specific topic. The Quran and authentic Hadith are the best sources for Islamic guidance.",
-  "Islamic scholarship has various perspectives on this matter. I recommend researching reliable Islamic sources for a comprehensive understanding.",
-  "I'm designed to provide basic information about Islam. For more detailed guidance, please consult with Islamic scholars or authentic texts.",
-]
+// Basic Islamic knowledge for fallback responses
+const basicIslamicResponses = {
+  greeting: "As-salamu alaykum! How can I help you learn about Islam today?",
+  error:
+    "I apologize, but I'm having trouble connecting to my knowledge base right now. Please try again in a moment, insha'Allah.",
+  pillars:
+    "The Five Pillars of Islam are: 1) Shahada (Faith), 2) Salah (Prayer), 3) Zakat (Charity), 4) Sawm (Fasting during Ramadan), and 5) Hajj (Pilgrimage to Mecca).",
+  prayer:
+    "Muslims pray five times a day: Fajr (dawn), Dhuhr (noon), Asr (afternoon), Maghrib (sunset), and Isha (night).",
+  quran:
+    "The Quran is the holy book of Islam, believed to be the word of Allah as revealed to Prophet Muhammad through the angel Gabriel over 23 years.",
+}
 
 export function FloatingChatbot() {
   const [isOpen, setIsOpen] = useState(false)
@@ -116,8 +66,14 @@ export function FloatingChatbot() {
     setIsLoading(true)
 
     try {
-      // Process the message and get a response
-      const response = await getResponse(input)
+      // Get response from Grok AI
+      const response = await getGrokResponse(
+        messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+        input,
+      )
 
       // Add assistant response
       const assistantMessage: Message = {
@@ -130,9 +86,20 @@ export function FloatingChatbot() {
       setMessages((prev) => [...prev, assistantMessage])
     } catch (error) {
       console.error("Error getting response:", error)
+
+      // Add a fallback response
+      const fallbackMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: basicIslamicResponses.error,
+        role: "assistant",
+        timestamp: new Date(),
+      }
+
+      setMessages((prev) => [...prev, fallbackMessage])
+
       toast({
-        title: "Error",
-        description: "Failed to get a response. Please try again.",
+        title: "Connection Issue",
+        description: "Having trouble connecting to the Islamic knowledge base.",
         variant: "destructive",
       })
     } finally {
@@ -140,23 +107,52 @@ export function FloatingChatbot() {
     }
   }
 
-  const getResponse = async (query: string): Promise<string> => {
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+  const getGrokResponse = async (previousMessages: { role: string; content: string }[], userInput: string) => {
+    try {
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
 
-    // Convert query to lowercase for matching
-    const lowercaseQuery = query.toLowerCase()
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [...previousMessages, { role: "user", content: userInput }],
+        }),
+        signal: controller.signal,
+      })
 
-    // Check knowledge base for matching keywords
-    for (const item of knowledgeBase) {
-      if (item.keywords.some((keyword) => lowercaseQuery.includes(keyword))) {
-        return item.response
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}: ${response.statusText}`)
       }
-    }
 
-    // If no match found, return a random fallback response
-    const randomIndex = Math.floor(Math.random() * fallbackResponses.length)
-    return fallbackResponses[randomIndex]
+      const data = await response.json()
+
+      if (!data.response) {
+        throw new Error("No response received from AI")
+      }
+
+      return data.response
+    } catch (error) {
+      console.error("Error fetching from API:", error)
+
+      // Provide fallback responses based on keywords
+      const lowercaseInput = userInput.toLowerCase()
+
+      if (lowercaseInput.includes("pillar") || lowercaseInput.includes("foundation")) {
+        return basicIslamicResponses.pillars
+      } else if (lowercaseInput.includes("pray") || lowercaseInput.includes("salah")) {
+        return basicIslamicResponses.prayer
+      } else if (lowercaseInput.includes("quran") || lowercaseInput.includes("book")) {
+        return basicIslamicResponses.quran
+      }
+
+      throw error // Re-throw to trigger the fallback message
+    }
   }
 
   const clearChat = () => {
@@ -277,7 +273,11 @@ export function FloatingChatbot() {
                 className="flex-1"
               />
               <Button onClick={handleSend} disabled={isLoading || !input.trim()} size="icon">
-                <Send className="h-4 w-4" />
+                {isLoading ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
                 <span className="sr-only">Send</span>
               </Button>
             </div>
