@@ -1,24 +1,24 @@
-import { sign, verify } from "jsonwebtoken"
-import { hash, compare } from "bcryptjs"
+import bcrypt from "bcryptjs"
+import jwt from "jsonwebtoken"
 import { cookies } from "next/headers"
 
-// Type for the JWT payload
-type TokenPayload = {
-  id: string
-  [key: string]: any
-}
-
-// Hash a password
+// Password hashing
 export async function hashPassword(password: string): Promise<string> {
-  return hash(password, 12)
+  const salt = await bcrypt.genSalt(10)
+  return bcrypt.hash(password, salt)
 }
 
-// Verify a password against a hash
 export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-  return compare(password, hashedPassword)
+  return bcrypt.compare(password, hashedPassword)
 }
 
-// Generate a JWT token
+// JWT token generation and verification
+interface TokenPayload {
+  id: string
+  email?: string
+  username?: string
+}
+
 export function generateToken(payload: TokenPayload): string {
   const secret = process.env.JWT_SECRET
 
@@ -26,10 +26,9 @@ export function generateToken(payload: TokenPayload): string {
     throw new Error("JWT_SECRET environment variable is not set")
   }
 
-  return sign(payload, secret, { expiresIn: "1d" })
+  return jwt.sign(payload, secret, { expiresIn: "1d" })
 }
 
-// Verify a JWT token
 export function verifyToken(token: string): TokenPayload | null {
   try {
     const secret = process.env.JWT_SECRET
@@ -38,13 +37,14 @@ export function verifyToken(token: string): TokenPayload | null {
       throw new Error("JWT_SECRET environment variable is not set")
     }
 
-    return verify(token, secret) as TokenPayload
+    return jwt.verify(token, secret) as TokenPayload
   } catch (error) {
+    console.error("Token verification error:", error)
     return null
   }
 }
 
-// Set the auth cookie
+// Cookie management
 export function setAuthCookie(token: string): void {
   cookies().set({
     name: "auth_token",
@@ -57,17 +57,14 @@ export function setAuthCookie(token: string): void {
   })
 }
 
-// Remove the auth cookie
 export function removeAuthCookie(): void {
   cookies().delete("auth_token")
 }
 
-// Get the auth cookie
-export function getAuthCookie(): string | undefined {
-  return cookies().get("auth_token")?.value
-}
-
-// Get the current user from the auth token
-export function getCurrentUser(token: string): TokenPayload | null {
-  return verifyToken(token)
+// User authentication check
+export function getCurrentUser(): Promise<any> {
+  return fetch("/api/auth/user").then((res) => {
+    if (!res.ok) throw new Error("Failed to fetch user")
+    return res.json()
+  })
 }

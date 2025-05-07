@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
 import { verifyPassword, generateToken } from "@/lib/auth-utils"
 import { cookies } from "next/headers"
 
 export async function POST(request: Request) {
   try {
+    // Dynamically import prisma to avoid build-time initialization
+    const { prisma } = await import("@/lib/prisma")
+
     const { email, password } = await request.json()
 
     // Validate input
