@@ -1,38 +1,36 @@
-import { NextResponse } from "next/server"
-import { verifyToken } from "@/lib/auth-utils"
-import { cookies } from "next/headers"
+import { type NextRequest, NextResponse } from "next/server"
+import { getSession } from "@/lib/auth-utils"
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const token = cookies().get("auth_token")?.value
+    const session = await getSession(request)
 
-    if (!token) {
+    if (!session) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const payload = verifyToken(token)
-
-    if (!payload || !payload.id) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
-    }
-
-    // Dynamically import prisma to avoid build-time initialization
+    // Dynamically import Prisma to avoid build-time initialization
     const { prisma } = await import("@/lib/prisma")
 
+    // Get the user
     const user = await prisma.user.findUnique({
-      where: { id: payload.id },
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     })
 
     if (!user) {
       return NextResponse.json({ message: "User not found" }, { status: 404 })
     }
 
-    // Return user data (excluding password)
-    const { password: _, ...userWithoutPassword } = user
-
-    return NextResponse.json({ user: userWithoutPassword })
+    return NextResponse.json({ user })
   } catch (error) {
     console.error("User error:", error)
-    return NextResponse.json({ message: "An error occurred while fetching user data" }, { status: 500 })
+    return NextResponse.json({ message: "An error occurred while getting user" }, { status: 500 })
   }
 }

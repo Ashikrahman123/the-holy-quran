@@ -1,27 +1,37 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { verifyToken } from "@/lib/auth-utils"
+import { cookies } from "next/headers"
+import jwt from "jsonwebtoken"
 
 export async function GET(request: NextRequest) {
   try {
     // Get the token from the cookies
-    const token = request.cookies.get("auth_token")?.value
+    const cookieStore = cookies()
+    const token = cookieStore.get("auth_token")?.value
 
     if (!token) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
     // Verify the token
-    const payload = await verifyToken(token)
+    const jwtSecret = process.env.JWT_SECRET || "fallback_secret_for_build_time"
+    let payload: any
+
+    try {
+      payload = jwt.verify(token, jwtSecret)
+    } catch (error) {
+      return NextResponse.json({ message: "Invalid token" }, { status: 401 })
+    }
 
     if (!payload || !payload.id) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    // Get the user's memories
+    // Dynamically import Prisma to avoid build-time initialization
+    const { prisma } = await import("@/lib/prisma")
+
+    // Get all memories for the user
     const memories = await prisma.memory.findMany({
       where: { userId: payload.id },
-      orderBy: { updatedAt: "desc" },
     })
 
     return NextResponse.json({ memories })
@@ -34,53 +44,59 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Get the token from the cookies
-    const token = request.cookies.get("auth_token")?.value
+    const cookieStore = cookies()
+    const token = cookieStore.get("auth_token")?.value
 
     if (!token) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
     // Verify the token
-    const payload = await verifyToken(token)
+    const jwtSecret = process.env.JWT_SECRET || "fallback_secret_for_build_time"
+    let payload: any
+
+    try {
+      payload = jwt.verify(token, jwtSecret)
+    } catch (error) {
+      return NextResponse.json({ message: "Invalid token" }, { status: 401 })
+    }
 
     if (!payload || !payload.id) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    // Get the request body
-    const { key, value } = await request.json()
+    // Parse the request body
+    const body = await request.json()
+    const { key, data } = body
 
-    if (!key || !value) {
-      return NextResponse.json({ message: "Key and value are required" }, { status: 400 })
+    if (!key || !data) {
+      return NextResponse.json({ message: "Key and data are required" }, { status: 400 })
     }
 
-    // Check if the memory already exists
-    const existingMemory = await prisma.memory.findFirst({
-      where: { userId: payload.id, key },
-    })
+    // Dynamically import Prisma to avoid build-time initialization
+    const { prisma } = await import("@/lib/prisma")
 
-    let memory
-
-    if (existingMemory) {
-      // Update the memory
-      memory = await prisma.memory.update({
-        where: { id: existingMemory.id },
-        data: { value },
-      })
-    } else {
-      // Create a new memory
-      memory = await prisma.memory.create({
-        data: {
+    // Create or update the memory
+    const memory = await prisma.memory.upsert({
+      where: {
+        userId_key: {
           userId: payload.id,
           key,
-          value,
         },
-      })
-    }
+      },
+      update: {
+        data: JSON.stringify(data),
+      },
+      create: {
+        userId: payload.id,
+        key,
+        data: JSON.stringify(data),
+      },
+    })
 
     return NextResponse.json({ memory })
   } catch (error) {
-    console.error("Error saving memory:", error)
-    return NextResponse.json({ message: "An error occurred while saving memory" }, { status: 500 })
+    console.error("Error creating/updating memory:", error)
+    return NextResponse.json({ message: "An error occurred while creating/updating memory" }, { status: 500 })
   }
 }

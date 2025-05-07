@@ -63,9 +63,9 @@
     "@ai-sdk/xai": "latest",
     "ai": "latest",
     "@vercel/blob": "latest",
-    "@prisma/client": "latest",
+    "jsonwebtoken": "latest",
     "bcryptjs": "latest",
-    "jsonwebtoken": "latest"
+    "@prisma/client": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

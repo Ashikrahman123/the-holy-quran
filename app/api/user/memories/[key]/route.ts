@@ -1,22 +1,34 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { verifyToken } from "@/lib/auth-utils"
+import { cookies } from "next/headers"
+import jwt from "jsonwebtoken"
 
+// Use dynamic imports for Prisma
 export async function GET(request: NextRequest, { params }: { params: { key: string } }) {
   try {
     // Get the token from the cookies
-    const token = request.cookies.get("auth_token")?.value
+    const cookieStore = cookies()
+    const token = cookieStore.get("auth_token")?.value
 
     if (!token) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
     // Verify the token
-    const payload = await verifyToken(token)
+    const jwtSecret = process.env.JWT_SECRET || "fallback_secret_for_build_time"
+    let payload: any
+
+    try {
+      payload = jwt.verify(token, jwtSecret)
+    } catch (error) {
+      return NextResponse.json({ message: "Invalid token" }, { status: 401 })
+    }
 
     if (!payload || !payload.id) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
+
+    // Dynamically import Prisma to avoid build-time initialization
+    const { prisma } = await import("@/lib/prisma")
 
     // Get the memory
     const memory = await prisma.memory.findFirst({
@@ -37,18 +49,29 @@ export async function GET(request: NextRequest, { params }: { params: { key: str
 export async function DELETE(request: NextRequest, { params }: { params: { key: string } }) {
   try {
     // Get the token from the cookies
-    const token = request.cookies.get("auth_token")?.value
+    const cookieStore = cookies()
+    const token = cookieStore.get("auth_token")?.value
 
     if (!token) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
     // Verify the token
-    const payload = await verifyToken(token)
+    const jwtSecret = process.env.JWT_SECRET || "fallback_secret_for_build_time"
+    let payload: any
+
+    try {
+      payload = jwt.verify(token, jwtSecret)
+    } catch (error) {
+      return NextResponse.json({ message: "Invalid token" }, { status: 401 })
+    }
 
     if (!payload || !payload.id) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
+
+    // Dynamically import Prisma to avoid build-time initialization
+    const { prisma } = await import("@/lib/prisma")
 
     // Delete the memory
     await prisma.memory.deleteMany({

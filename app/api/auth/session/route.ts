@@ -1,38 +1,17 @@
-import { NextResponse } from "next/server"
-import { verifyToken } from "@/lib/auth-utils"
-import { cookies } from "next/headers"
+import { type NextRequest, NextResponse } from "next/server"
+import { getSession } from "@/lib/auth-utils"
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const token = cookies().get("auth_token")?.value
+    const session = await getSession(request)
 
-    if (!token) {
+    if (!session) {
       return NextResponse.json({ user: null })
     }
 
-    const payload = verifyToken(token)
-
-    if (!payload || !payload.id) {
-      return NextResponse.json({ user: null })
-    }
-
-    // Dynamically import prisma to avoid build-time initialization
-    const { prisma } = await import("@/lib/prisma")
-
-    const user = await prisma.user.findUnique({
-      where: { id: payload.id },
-    })
-
-    if (!user) {
-      return NextResponse.json({ user: null })
-    }
-
-    // Return user data (excluding password)
-    const { password: _, ...userWithoutPassword } = user
-
-    return NextResponse.json({ user: userWithoutPassword })
+    return NextResponse.json({ user: session.user })
   } catch (error) {
     console.error("Session error:", error)
-    return NextResponse.json({ user: null })
+    return NextResponse.json({ message: "An error occurred while getting session" }, { status: 500 })
   }
 }
