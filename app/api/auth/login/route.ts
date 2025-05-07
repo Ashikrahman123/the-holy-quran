@@ -1,8 +1,9 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { verifyPassword, generateToken } from "@/lib/auth-utils"
+import { cookies } from "next/headers"
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const { email, password } = await request.json()
 
@@ -30,25 +31,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate token
-    const token = await generateToken({
+    const token = generateToken({
       id: user.id,
       email: user.email,
       username: user.username,
     })
 
     // Set cookie
-    const response = NextResponse.json({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        username: user.username,
-        image: user.image,
-      },
-    })
-
-    // Set the cookie
-    response.cookies.set({
+    cookies().set({
       name: "auth_token",
       value: token,
       httpOnly: true,
@@ -58,7 +48,10 @@ export async function POST(request: NextRequest) {
       sameSite: "lax",
     })
 
-    return response
+    // Return user data (excluding password)
+    const { password: _, ...userWithoutPassword } = user
+
+    return NextResponse.json({ user: userWithoutPassword })
   } catch (error) {
     console.error("Login error:", error)
     return NextResponse.json({ message: "An error occurred during login" }, { status: 500 })

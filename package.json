@@ -62,10 +62,10 @@
     "canvas-confetti": "latest",
     "@ai-sdk/xai": "latest",
     "ai": "latest",
-    "@prisma/client": "latest",
     "@vercel/blob": "latest",
-    "crypto": "latest",
-    "jose": "latest"
+    "@prisma/client": "latest",
+    "jsonwebtoken": "latest",
+    "bcryptjs": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

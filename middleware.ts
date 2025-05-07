@@ -1,42 +1,38 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { verifyToken } from "./lib/auth-utils"
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
 // Define protected routes that require authentication
 const protectedRoutes = ["/profile", "/settings"]
 
-// Define auth routes (login, signup) where authenticated users should be redirected
-const authRoutes = ["/login", "/signup"]
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
 
-export async function middleware(request: NextRequest) {
-  const token = request.cookies.get("auth_token")?.value
-  const path = request.nextUrl.pathname
+  // Check if the route is protected
+  const isProtectedRoute = protectedRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`))
 
-  const isAuthenticated = token && (await verifyToken(token))
-  const isProtectedRoute = protectedRoutes.some((route) => path.startsWith(route))
-  const isAuthRoute = authRoutes.some((route) => path === route)
+  // Get the auth token from cookies
+  const authToken = request.cookies.get("auth_token")?.value
 
-  // If accessing a protected route without authentication, redirect to login
-  if (isProtectedRoute && !isAuthenticated) {
+  // If it's a protected route and there's no auth token, redirect to login
+  if (isProtectedRoute && !authToken) {
     const url = new URL("/login", request.url)
-    url.searchParams.set("callbackUrl", path)
+    url.searchParams.set("callbackUrl", pathname)
     return NextResponse.redirect(url)
-  }
-
-  // If accessing auth routes while authenticated, redirect to home
-  if (isAuthRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL("/", request.url))
   }
 
   return NextResponse.next()
 }
 
+// Fix the config export format
 export const config = {
   matcher: [
-    // Match all protected routes
-    ...protectedRoutes.map((route) => route + "/:path*"),
-    // Match auth routes
-    ...authRoutes,
-    // Add API routes that need authentication
-    "/api/user/:path*",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
 }
