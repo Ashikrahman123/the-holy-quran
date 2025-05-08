@@ -1,60 +1,53 @@
 import { type NextRequest, NextResponse } from "next/server"
-import bcrypt from "bcryptjs"
-import { generateToken } from "@/lib/auth-utils"
+import { verifyPassword, generateToken, setAuthCookie, sanitizeUser } from "@/lib/auth-utils"
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { email, password } = body
 
+    // Validate input
     if (!email || !password) {
       return NextResponse.json({ message: "Email and password are required" }, { status: 400 })
     }
 
-    // Dynamically import Prisma to avoid build-time initialization
+    // Dynamically import prisma to avoid build-time initialization
     const { prisma } = await import("@/lib/prisma")
 
-    // Find the user
-    const user = await prisma.user.findUnique({
-      where: { email },
-    })
-
-    if (!user) {
-      return NextResponse.json({ message: "Invalid email or password" }, { status: 401 })
-    }
-
-    // Check the password
-    const isPasswordValid = await bcrypt.compare(password, user.password)
-
-    if (!isPasswordValid) {
-      return NextResponse.json({ message: "Invalid email or password" }, { status: 401 })
-    }
-
-    // Generate a token
-    const token = generateToken({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-    })
-
-    // Set the cookie
-    const response = NextResponse.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
+    // Find user by email or username
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [{ email: email.toLowerCase() }, { username: email.toLowerCase() }],
       },
     })
 
-    response.cookies.set({
-      name: "auth_token",
-      value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+    if (!user) {
+      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 })
+    }
+
+    // Verify password
+    const isPasswordValid = await verifyPassword(password, user.password)
+
+    if (!isPasswordValid) {
+      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 })
+    }
+
+    // Generate token
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
     })
+
+    // Create response
+    const response = NextResponse.json({
+      user: sanitizeUser(user),
+      message: "Logged in successfully",
+    })
+
+    // Set cookie
+    setAuthCookie(token, response)
 
     return response
   } catch (error) {

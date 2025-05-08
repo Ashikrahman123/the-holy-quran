@@ -2,164 +2,360 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
+import { Role } from "@prisma/client"
 import { useToast } from "@/components/ui/use-toast"
 
-type User = {
+// Types
+interface User {
   id: string
-  name: string
+  name?: string | null
   email: string
+  username: string
+  role: Role
+  image?: string | null
 }
 
-type AuthContextType = {
+interface AuthContextType {
   user: User | null
-  isLoading: boolean
-  login: (email: string, password: string) => Promise<boolean>
-  signup: (name: string, email: string, password: string) => Promise<boolean>
+  loading: boolean
+  login: (emailOrUsername: string, password: string) => Promise<boolean>
+  signup: (data: SignupData) => Promise<boolean>
   logout: () => Promise<void>
+  updateProfile: (data: Partial<User>) => Promise<boolean>
+  forgotPassword: (email: string) => Promise<boolean>
+  resetPassword: (token: string, password: string) => Promise<boolean>
+  isAdmin: () => boolean
+  isModerator: () => boolean
 }
 
+interface SignupData {
+  name?: string
+  email: string
+  username: string
+  password: string
+}
+
+// Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Provider component
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
   const { toast } = useToast()
 
+  // Check if user is logged in
   useEffect(() => {
-    // Check if user is logged in
     const checkSession = async () => {
       try {
-        const response = await fetch("/api/auth/session")
-        if (response.ok) {
-          const data = await response.json()
-          if (data.user) {
-            setUser(data.user)
-          }
+        const res = await fetch("/api/auth/session")
+        const data = await res.json()
+
+        if (data.user) {
+          setUser(data.user)
         }
       } catch (error) {
-        console.error("Error checking session:", error)
+        console.error("Failed to fetch session:", error)
       } finally {
-        setIsLoading(false)
+        setLoading(false)
       }
     }
 
     checkSession()
   }, [])
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  // Login function
+  const login = async (emailOrUsername: string, password: string): Promise<boolean> => {
     try {
-      setIsLoading(true)
-      const response = await fetch("/api/auth/login", {
+      setLoading(true)
+
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: emailOrUsername, password }),
       })
 
-      const data = await response.json()
+      const data = await res.json()
 
-      if (!response.ok) {
+      if (!res.ok) {
         toast({
           title: "Login failed",
-          description: data.error || "Invalid credentials",
+          description: data.message || "Invalid credentials",
           variant: "destructive",
         })
         return false
       }
 
       setUser(data.user)
+
       toast({
         title: "Login successful",
-        description: `Welcome back, ${data.user.name}!`,
+        description: data.message || "Welcome back!",
       })
+
+      router.refresh()
       return true
     } catch (error) {
       console.error("Login error:", error)
+
       toast({
         title: "Login failed",
         description: "An unexpected error occurred",
         variant: "destructive",
       })
+
       return false
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
-  const signup = async (name: string, email: string, password: string): Promise<boolean> => {
+  // Signup function
+  const signup = async (data: SignupData): Promise<boolean> => {
     try {
-      setIsLoading(true)
-      const response = await fetch("/api/auth/signup", {
+      setLoading(true)
+
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify(data),
       })
 
-      const data = await response.json()
+      const responseData = await res.json()
 
-      if (!response.ok) {
+      if (!res.ok) {
         toast({
           title: "Signup failed",
-          description: data.error || "Could not create account",
+          description: responseData.message || "Failed to create account",
           variant: "destructive",
         })
         return false
       }
 
-      setUser(data.user)
+      setUser(responseData.user)
+
       toast({
         title: "Account created",
-        description: `Welcome, ${data.user.name}!`,
+        description: responseData.message || "Your account has been created successfully",
       })
+
+      router.refresh()
       return true
     } catch (error) {
       console.error("Signup error:", error)
+
       toast({
         title: "Signup failed",
         description: "An unexpected error occurred",
         variant: "destructive",
       })
+
       return false
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
+  // Logout function
   const logout = async (): Promise<void> => {
     try {
-      setIsLoading(true)
+      setLoading(true)
+
       await fetch("/api/auth/logout", {
         method: "POST",
       })
+
       setUser(null)
-      router.push("/")
+
       toast({
         title: "Logged out",
-        description: "You have been successfully logged out",
+        description: "You have been logged out successfully",
       })
+
+      router.refresh()
+      router.push("/")
     } catch (error) {
       console.error("Logout error:", error)
+
       toast({
         title: "Logout failed",
         description: "An unexpected error occurred",
         variant: "destructive",
       })
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
-  return <AuthContext.Provider value={{ user, isLoading, login, signup, logout }}>{children}</AuthContext.Provider>
+  // Update profile function
+  const updateProfile = async (data: Partial<User>): Promise<boolean> => {
+    try {
+      setLoading(true)
+
+      const res = await fetch("/api/auth/user", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+
+      const responseData = await res.json()
+
+      if (!res.ok) {
+        toast({
+          title: "Update failed",
+          description: responseData.message || "Failed to update profile",
+          variant: "destructive",
+        })
+        return false
+      }
+
+      setUser((prev) => (prev ? { ...prev, ...responseData.user } : null))
+
+      toast({
+        title: "Profile updated",
+        description: responseData.message || "Your profile has been updated successfully",
+      })
+
+      return true
+    } catch (error) {
+      console.error("Update profile error:", error)
+
+      toast({
+        title: "Update failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
+
+      return false
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Forgot password function
+  const forgotPassword = async (email: string): Promise<boolean> => {
+    try {
+      setLoading(true)
+
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await res.json()
+
+      toast({
+        title: "Password reset",
+        description: data.message || "If your email is registered, you will receive a password reset link",
+      })
+
+      return res.ok
+    } catch (error) {
+      console.error("Forgot password error:", error)
+
+      toast({
+        title: "Request failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
+
+      return false
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Reset password function
+  const resetPassword = async (token: string, password: string): Promise<boolean> => {
+    try {
+      setLoading(true)
+
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token, password }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        toast({
+          title: "Reset failed",
+          description: data.message || "Failed to reset password",
+          variant: "destructive",
+        })
+        return false
+      }
+
+      toast({
+        title: "Password reset",
+        description: data.message || "Your password has been reset successfully",
+      })
+
+      return true
+    } catch (error) {
+      console.error("Reset password error:", error)
+
+      toast({
+        title: "Reset failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
+
+      return false
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Role check functions
+  const isAdmin = (): boolean => {
+    return user?.role === Role.ADMIN
+  }
+
+  const isModerator = (): boolean => {
+    return user?.role === Role.ADMIN || user?.role === Role.MODERATOR
+  }
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        signup,
+        logout,
+        updateProfile,
+        forgotPassword,
+        resetPassword,
+        isAdmin,
+        isModerator,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
+// Hook to use auth context
 export function useAuth() {
   const context = useContext(AuthContext)
+
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider")
   }
+
   return context
 }

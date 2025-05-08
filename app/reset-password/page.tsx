@@ -1,21 +1,21 @@
 import type { Metadata } from "next"
-import { SignupForm } from "@/components/auth/signup-form"
+import { ResetPasswordForm } from "@/components/auth/reset-password-form"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 
 export const metadata: Metadata = {
-  title: "Sign Up | The Holy Quran",
-  description: "Create an account to access personalized features",
+  title: "Reset Password | The Holy Quran",
+  description: "Set a new password for your account",
 }
 
-export default function SignupPage() {
+export default function ResetPasswordPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1 container py-12">
         <div className="max-w-md mx-auto">
-          <h1 className="text-3xl font-bold text-center mb-8">Create an Account</h1>
-          <SignupForm />
+          <h1 className="text-3xl font-bold text-center mb-8">Reset Password</h1>
+          <ResetPasswordForm />
         </div>
       </main>
       <Footer />

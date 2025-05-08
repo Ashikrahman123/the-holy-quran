@@ -3,24 +3,26 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useToast } from "@/components/ui/use-toast"
+import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react"
 
 export function LoginForm() {
-  const [email, setEmail] = useState("")
+  const [emailOrUsername, setEmailOrUsername] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const { login } = useAuth()
   const router = useRouter()
-  const { toast } = useToast()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get("callbackUrl") || "/"
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,25 +30,12 @@ export function LoginForm() {
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      })
+      const success = await login(emailOrUsername, password)
 
-      const data = await response.json()
-
-      if (response.ok) {
-        toast({
-          title: "Login successful",
-          description: "You have been successfully logged in",
-        })
-        router.push("/")
-        router.refresh()
+      if (success) {
+        router.push(callbackUrl)
       } else {
-        setError(data.message || "Failed to login")
+        setError("Invalid email/username or password")
       }
     } catch (err) {
       setError("An unexpected error occurred")
@@ -54,10 +43,6 @@ export function LoginForm() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const toggleShowPassword = () => {
-    setShowPassword(!showPassword)
   }
 
   return (
@@ -75,12 +60,12 @@ export function LoginForm() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email or Username</Label>
+            <Label htmlFor="emailOrUsername">Email or Username</Label>
             <Input
-              id="email"
+              id="emailOrUsername"
               type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={emailOrUsername}
+              onChange={(e) => setEmailOrUsername(e.target.value)}
               placeholder="Enter your email or username"
               required
               className="border-emerald-200 focus:border-emerald-500"
@@ -108,7 +93,7 @@ export function LoginForm() {
               />
               <button
                 type="button"
-                onClick={toggleShowPassword}
+                onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
@@ -135,10 +120,6 @@ export function LoginForm() {
           <Link href="/signup" className="text-emerald-600 hover:text-emerald-700 hover:underline font-medium">
             Sign up
           </Link>
-        </div>
-
-        <div className="flex items-center justify-center">
-          <div className="text-xs text-gray-500">Secure login protected with encryption</div>
         </div>
       </CardFooter>
     </Card>

@@ -12,10 +12,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Settings, LogOut } from "lucide-react"
+import { User, Settings, LogOut, Shield } from "lucide-react"
 
 export function UserNav() {
-  const { user, logout } = useAuth()
+  const { user, logout, isAdmin } = useAuth()
 
   if (!user) {
     return (
@@ -40,7 +40,7 @@ export function UserNav() {
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             <AvatarImage src={user.image || ""} alt={user.name || user.username} />
-            <AvatarFallback>
+            <AvatarFallback className="bg-emerald-100 text-emerald-800">
               <User className="h-4 w-4" />
             </AvatarFallback>
           </Avatar>
@@ -66,8 +66,18 @@ export function UserNav() {
             <span>Settings</span>
           </Link>
         </DropdownMenuItem>
+
+        {isAdmin() && (
+          <DropdownMenuItem asChild>
+            <Link href="/admin" className="cursor-pointer">
+              <Shield className="mr-2 h-4 w-4" />
+              <span>Admin Dashboard</span>
+            </Link>
+          </DropdownMenuItem>
+        )}
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={() => logout()}>
+        <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600" onClick={() => logout()}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>

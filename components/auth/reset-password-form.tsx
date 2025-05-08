@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
@@ -13,22 +13,27 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react"
 
-export function SignupForm() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [username, setUsername] = useState("")
+export function ResetPasswordForm() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const { signup } = useAuth()
+  const [isSuccess, setIsSuccess] = useState(false)
+  const { resetPassword } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const token = searchParams.get("token")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+
+    if (!token) {
+      setError("Invalid or missing reset token")
+      return
+    }
 
     // Validate passwords match
     if (password !== confirmPassword) {
@@ -48,15 +53,10 @@ export function SignupForm() {
     setIsLoading(true)
 
     try {
-      const success = await signup({
-        name,
-        email,
-        username,
-        password,
-      })
+      const success = await resetPassword(token, password)
 
       if (success) {
-        router.push("/")
+        setIsSuccess(true)
       }
     } catch (err) {
       setError("An unexpected error occurred")
@@ -66,11 +66,28 @@ export function SignupForm() {
     }
   }
 
+  if (isSuccess) {
+    return (
+      <Card className="w-full max-w-md mx-auto border-emerald-100 shadow-lg">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">Password reset successful</CardTitle>
+          <CardDescription className="text-center">Your password has been reset successfully</CardDescription>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="text-sm text-gray-500 mb-4">You can now log in with your new password.</p>
+          <Button className="mt-2 bg-emerald-600 hover:bg-emerald-700" onClick={() => router.push("/login")}>
+            Go to login
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className="w-full max-w-md mx-auto border-emerald-100 shadow-lg">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
-        <CardDescription className="text-center">Enter your information to create an account</CardDescription>
+        <CardTitle className="text-2xl font-bold text-center">Reset password</CardTitle>
+        <CardDescription className="text-center">Enter your new password</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -80,59 +97,26 @@ export function SignupForm() {
             </Alert>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="name">Name (Optional)</Label>
-            <Input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your name"
-              className="border-emerald-200 focus:border-emerald-500"
-              disabled={isLoading}
-            />
-          </div>
+          {!token && (
+            <Alert variant="destructive" className="text-sm">
+              <AlertDescription>
+                Invalid or missing reset token. Please request a new password reset link.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-              className="border-emerald-200 focus:border-emerald-500"
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
-            <Input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Choose a username"
-              required
-              className="border-emerald-200 focus:border-emerald-500"
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">New Password</Label>
             <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create a password"
+                placeholder="Enter new password"
                 required
                 className="border-emerald-200 focus:border-emerald-500 pr-10"
-                disabled={isLoading}
+                disabled={isLoading || !token}
               />
               <button
                 type="button"
@@ -150,17 +134,17 @@ export function SignupForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">Confirm New Password</Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm your password"
+                placeholder="Confirm new password"
                 required
                 className="border-emerald-200 focus:border-emerald-500 pr-10"
-                disabled={isLoading}
+                disabled={isLoading || !token}
               />
               <button
                 type="button"
@@ -173,23 +157,23 @@ export function SignupForm() {
             </div>
           </div>
 
-          <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={isLoading || !token}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
+                Resetting password...
               </>
             ) : (
-              "Sign Up"
+              "Reset Password"
             )}
           </Button>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col space-y-4 border-t pt-4">
         <div className="text-center text-sm">
-          Already have an account?{" "}
+          Remember your password?{" "}
           <Link href="/login" className="text-emerald-600 hover:text-emerald-700 hover:underline font-medium">
-            Login
+            Back to login
           </Link>
         </div>
       </CardFooter>
