@@ -10,3 +10,9 @@ const globalForPrisma = global as unknown as { prisma: PrismaClient }
 export const prisma = globalForPrisma.prisma || new PrismaClient()
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
+
+// Export a higher-order function to get the prisma client
+// This helps with tree-shaking and prevents the client from being bundled in the browser
+export async function getPrismaClient() {
+  return { prisma }
+}
