@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { hashPassword, generateToken, setAuthCookie, sanitizeUser } from "@/lib/auth-utils"
 import { Role } from "@prisma/client"
+import { db } from "@/lib/db"
+import "server-only"
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,11 +37,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Username must be at least 3 characters long" }, { status: 400 })
     }
 
-    // Dynamically import prisma to avoid build-time initialization
-    const { prisma } = await import("@/lib/prisma")
-
     // Check if user already exists
-    const existingUser = await prisma.user.findFirst({
+    const existingUser = await db.user.findFirst({
       where: {
         OR: [{ email: email.toLowerCase() }, { username: username.toLowerCase() }],
       },
@@ -59,7 +58,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hashPassword(password)
 
     // Create user
-    const user = await prisma.user.create({
+    const user = await db.user.create({
       data: {
         name: name || username,
         email: email.toLowerCase(),

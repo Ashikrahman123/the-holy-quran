@@ -1,151 +1,105 @@
-import { cookies } from "next/headers"
 import type { NextRequest, NextResponse } from "next/server"
-import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
-import { Role, type User } from "@prisma/client"
-import crypto from "crypto"
+import jwt from "jsonwebtoken"
+import { type User, Role } from "@prisma/client"
+import { ensureServerOnly } from "./server-only"
+
+// Ensure these functions only run on the server
+ensureServerOnly()
 
 // Types
-export interface TokenPayload {
-  id: string
-  email?: string
-  username?: string
-  role?: Role
-}
-
-export interface SessionUser {
+export interface UserJwtPayload {
   id: string
   email: string
-  name?: string | null
-  username: string
+  username?: string
   role: Role
-  image?: string | null
+  iat?: number
+  exp?: number
 }
 
 // Password utilities
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 12)
+  return bcrypt.hash(password, 10)
 }
 
 export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
   return bcrypt.compare(password, hashedPassword)
 }
 
-// JWT token utilities
-export function generateToken(payload: TokenPayload): string {
-  const jwtSecret = process.env.JWT_SECRET || "fallback_secret_for_build_time"
-  return jwt.sign(payload, jwtSecret, { expiresIn: "7d" })
-}
-
-export function verifyToken(token: string): TokenPayload | null {
-  try {
-    const jwtSecret = process.env.JWT_SECRET || "fallback_secret_for_build_time"
-    return jwt.verify(token, jwtSecret) as TokenPayload
-  } catch (error) {
-    return null
+// JWT utilities
+export function generateToken(payload: UserJwtPayload): string {
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    throw new Error("JWT_SECRET is not defined")
   }
+
+  return jwt.sign(payload, secret, { expiresIn: "7d" })
 }
 
-// Cookie management
-export function setAuthCookie(token: string, response?: NextResponse): void {
-  const cookieStore = cookies()
+export function verifyToken(token: string): UserJwtPayload {
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    throw new Error("JWT_SECRET is not defined")
+  }
 
-  cookieStore.set({
+  return jwt.verify(token, secret) as UserJwtPayload
+}
+
+// Cookie utilities
+export function setAuthCookie(token: string, response: NextResponse): void {
+  response.cookies.set({
     name: "auth_token",
     value: token,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    sameSite: "strict",
     path: "/",
-    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7, // 7 days
   })
-
-  if (response) {
-    response.cookies.set({
-      name: "auth_token",
-      value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-      sameSite: "lax",
-    })
-  }
 }
 
-export function removeAuthCookie(response?: NextResponse): void {
-  const cookieStore = cookies()
-  cookieStore.delete("auth_token")
-
-  if (response) {
-    response.cookies.delete("auth_token")
-  }
+export function removeAuthCookie(response: NextResponse): void {
+  response.cookies.set({
+    name: "auth_token",
+    value: "",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+    maxAge: 0,
+  })
 }
 
-// Session management
-export function getAuthCookie(req?: NextRequest): string | undefined {
-  if (req) {
-    return req.cookies.get("auth_token")?.value
-  }
-
-  const cookieStore = cookies()
-  return cookieStore.get("auth_token")?.value
+// User utilities
+export function sanitizeUser(user: User): Omit<User, "password"> {
+  const { password, ...sanitizedUser } = user
+  return sanitizedUser
 }
 
-export async function getSession(req?: NextRequest): Promise<{ user: SessionUser } | null> {
-  const token = getAuthCookie(req)
+export async function getSession(request: NextRequest): Promise<{ user: UserJwtPayload } | null> {
+  const token = request.cookies.get("auth_token")?.value
 
   if (!token) {
     return null
   }
 
-  const payload = verifyToken(token)
-
-  if (!payload || !payload.id) {
+  try {
+    const user = verifyToken(token)
+    return { user }
+  } catch (error) {
+    console.error("Invalid token:", error)
     return null
-  }
-
-  // Dynamically import prisma to avoid build-time initialization
-  const { prisma } = await import("@/lib/prisma")
-
-  const user = await prisma.user.findUnique({
-    where: { id: payload.id },
-  })
-
-  if (!user) {
-    return null
-  }
-
-  return {
-    user: {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      username: user.username,
-      role: user.role,
-      image: user.image,
-    },
   }
 }
 
-// Password reset utilities
-export function generateResetToken(): string {
-  return crypto.randomBytes(32).toString("hex")
-}
-
-// Role-based access control
 export function hasPermission(userRole: Role, requiredRole: Role): boolean {
-  const roleHierarchy = {
-    [Role.ADMIN]: 3,
-    [Role.MODERATOR]: 2,
-    [Role.USER]: 1,
-  }
-
-  return roleHierarchy[userRole] >= roleHierarchy[requiredRole]
+  if (requiredRole === Role.USER) return true // All logged-in users have USER role
+  if (requiredRole === Role.MODERATOR) return userRole === Role.MODERATOR || userRole === Role.ADMIN
+  return userRole === Role.ADMIN
 }
 
-// User data sanitization
-export function sanitizeUser(user: User): Omit<User, "password"> {
-  const { password, ...userWithoutPassword } = user
-  return userWithoutPassword
+export function generateResetToken(): string {
+  // Generate a random token (you can use a library like uuid)
+  const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+  return token
 }
