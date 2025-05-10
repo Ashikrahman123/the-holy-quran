@@ -2,16 +2,16 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
-import { Role } from "@prisma/client"
 import { useToast } from "@/components/ui/use-toast"
+import type { Role } from "@prisma/client"
 
 // Types
 interface User {
   id: string
   name?: string | null
   email: string
-  username: string
-  role: Role
+  username?: string
+  role?: Role
   image?: string | null
 }
 
@@ -31,7 +31,7 @@ interface AuthContextType {
 interface SignupData {
   name?: string
   email: string
-  username: string
+  username?: string
   password: string
 }
 
@@ -322,11 +322,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Role check functions
   const isAdmin = (): boolean => {
-    return user?.role === Role.ADMIN
+    return user?.role === "ADMIN"
   }
 
   const isModerator = (): boolean => {
-    return user?.role === Role.ADMIN || user?.role === Role.MODERATOR
+    return user?.role === "ADMIN" || user?.role === "MODERATOR"
   }
 
   return (
