@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
+    serverComponentsExternalPackages: ["@prisma/client", "bcryptjs"],
   },
   eslint: {
     ignoreDuringBuilds: true,
@@ -22,11 +22,11 @@ const nextConfig = {
         fs: false,
         net: false,
         tls: false,
-        crypto: false, // Changed from require.resolve('crypto-browserify')
+        crypto: false,
       }
     }
     return config
   },
 }
 
-export default nextConfig
+module.exports = nextConfig
