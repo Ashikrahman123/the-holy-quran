@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx prisma generate && next build",
-  "installCommand": "pnpm install",
+  "buildCommand": "rm -f .babelrc && npx prisma generate && next build",
+  "installCommand": "npm install",
   "framework": "nextjs"
 }
