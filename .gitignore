@@ -25,8 +25,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# Babel
-.babelrc
-.babelrc.js
-babel.config.js

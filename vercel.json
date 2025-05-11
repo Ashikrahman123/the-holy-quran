@@ -1,5 +1,0 @@
-{
-  "buildCommand": "rm -f .babelrc && npx prisma generate && next build",
-  "installCommand": "node scripts/fix-deps.js && npm install --legacy-peer-deps",
-  "framework": "nextjs"
-}

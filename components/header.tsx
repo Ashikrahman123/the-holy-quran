@@ -10,7 +10,6 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageSelector } from "@/components/language-selector"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { UserNav } from "@/components/user-nav"
 
 export function Header() {
   const pathname = usePathname()
@@ -93,9 +92,8 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2">
-          <UserNav />
-          <ThemeToggle />
           <LanguageSelector />
+          <ThemeToggle />
           <Link href="/search" className="md:hidden">
             <Button variant="ghost" size="icon" className="h-9 w-9">
               <Search className="h-5 w-5" />
