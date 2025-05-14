@@ -1084,7 +1084,22 @@ import { getLanguage as getLanguageFromStorage } from "./language"
 
 export const getLanguage = getLanguageFromStorage
 
-export async function getRandomVerse(language = "en"): Promise<Verse | null> {
+// Add this function to ensure translations are always available
+// This is a partial update - only showing the function to add
+
+export function ensureTranslations(verse: any): any {
+  if (!verse) return null
+
+  // If translations is undefined or empty, add a default translation
+  if (!verse.translations || verse.translations.length === 0) {
+    verse.translations = [{ text: "Translation not available" }]
+  }
+
+  return verse
+}
+
+// Then update the getRandomVerse function to use this helper
+export async function getRandomVerse(language = "en"): Promise<any> {
   try {
     // Generate random chapter (1-114) and verse
     const randomChapter = Math.floor(Math.random() * 114) + 1
@@ -1102,7 +1117,9 @@ export async function getRandomVerse(language = "en"): Promise<Verse | null> {
     )
     if (!response.ok) throw new Error(`Failed to fetch random verse: ${response.status} ${response.statusText}`)
     const data = await response.json()
-    return data.verse
+    const verse = data.verse
+    // Before returning the verse, ensure it has translations
+    return ensureTranslations(verse)
   } catch (primaryError) {
     console.error("Error fetching random verse:", primaryError)
 
@@ -1119,7 +1136,7 @@ export async function getRandomVerse(language = "en"): Promise<Verse | null> {
         const randomAyah = ayahs[randomIndex]
 
         // Transform to match our interface
-        return {
+        const verse = {
           id: randomIndex + 1,
           verse_key: `${randomChapter}:${randomAyah.numberInSurah}`,
           text_uthmani: randomAyah.text,
@@ -1134,6 +1151,7 @@ export async function getRandomVerse(language = "en"): Promise<Verse | null> {
             },
           ],
         }
+        return ensureTranslations(verse)
       }
       throw new Error("Invalid data from backup API")
     } catch (backupError) {

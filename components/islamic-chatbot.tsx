@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { MessageSquare, Send, RefreshCw, Bot } from "lucide-react"
+import { MessageSquare, Send, RefreshCw, Bot, AlertCircle } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface Message {
   id: string
@@ -40,6 +41,7 @@ export function IslamicChatbot() {
   ])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
 
@@ -50,6 +52,9 @@ export function IslamicChatbot() {
 
   const handleSend = async () => {
     if (!input.trim()) return
+
+    // Clear any previous errors
+    setApiError(null)
 
     // Add user message
     const userMessage: Message = {
@@ -85,6 +90,13 @@ export function IslamicChatbot() {
     } catch (error) {
       console.error("Error getting response:", error)
 
+      // Set API error message
+      if (error instanceof Error) {
+        setApiError(error.message)
+      } else {
+        setApiError("An unknown error occurred")
+      }
+
       // Add a fallback response
       const fallbackMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -109,7 +121,7 @@ export function IslamicChatbot() {
     try {
       // Add timeout to prevent hanging requests
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
 
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -138,6 +150,11 @@ export function IslamicChatbot() {
     } catch (error) {
       console.error("Error fetching from API:", error)
 
+      // Check if it's an AbortError (timeout)
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw new Error("Request timed out. Please try again.")
+      }
+
       // Provide fallback responses based on keywords
       const lowercaseInput = userInput.toLowerCase()
 
@@ -162,6 +179,7 @@ export function IslamicChatbot() {
         timestamp: new Date(),
       },
     ])
+    setApiError(null)
     toast({
       title: "Chat Cleared",
       description: "All previous messages have been cleared.",
@@ -179,6 +197,16 @@ export function IslamicChatbot() {
       </CardHeader>
 
       <CardContent className="p-0">
+        {apiError && (
+          <Alert variant="destructive" className="mx-4 mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>
+              {apiError}. The system will use fallback responses until the connection is restored.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <ScrollArea className="h-[400px] px-4">
           <div className="space-y-4 pt-4 pb-4">
             {messages.map((message) => (
@@ -198,7 +226,7 @@ export function IslamicChatbot() {
                       message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
                     }`}
                   >
-                    <p className="text-sm">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     <p className="mt-1 text-xs opacity-70">
                       {message.timestamp.toLocaleTimeString([], {
                         hour: "2-digit",

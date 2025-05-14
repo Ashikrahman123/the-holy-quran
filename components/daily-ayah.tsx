@@ -28,6 +28,11 @@ export function DailyAyah() {
       const language = getLanguage()
       const randomVerse = await getRandomVerse(language)
       if (randomVerse) {
+        // Ensure translations array exists and has at least one item
+        if (!randomVerse.translations || randomVerse.translations.length === 0) {
+          randomVerse.translations = [{ text: "Translation not available" }]
+        }
+
         setVerse(randomVerse)
         setBookmarked(isBookmarked(randomVerse.verse_key))
 
@@ -75,7 +80,11 @@ export function DailyAyah() {
   const handleCopy = () => {
     if (!verse) return
 
-    const textToCopy = `${verse.text_uthmani}\n\n${verse.translations[0]?.text}\n\n(Quran ${verse.verse_key})`
+    // Safely access translations
+    const translationText =
+      verse.translations && verse.translations[0] ? verse.translations[0].text : "Translation not available"
+    const textToCopy = `${verse.text_uthmani}\n\n${translationText}\n\n(Quran ${verse.verse_key})`
+
     navigator.clipboard.writeText(textToCopy)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -92,11 +101,15 @@ export function DailyAyah() {
 
     try {
       if (!bookmarked) {
+        // Safely access translations
+        const translationText =
+          verse.translations && verse.translations[0] ? verse.translations[0].text : "Translation not available"
+
         addBookmark({
           verseKey: verse.verse_key,
           chapterName: verse.verse_key.split(":")[0],
           verseText: verse.text_uthmani,
-          translation: verse.translations[0]?.text || "",
+          translation: translationText,
         })
         setBookmarked(true)
         toast({
@@ -148,11 +161,15 @@ export function DailyAyah() {
   const handleShare = () => {
     if (!verse) return
 
+    // Safely access translations
+    const translationText =
+      verse.translations && verse.translations[0] ? verse.translations[0].text : "Translation not available"
+
     if (navigator.share) {
       navigator
         .share({
           title: `Quran Verse ${verse.verse_key}`,
-          text: `${verse.text_uthmani}\n\n${verse.translations[0]?.text}\n\n(Quran ${verse.verse_key})`,
+          text: `${verse.text_uthmani}\n\n${translationText}\n\n(Quran ${verse.verse_key})`,
           url: window.location.href,
         })
         .catch((err) => {
@@ -219,13 +236,17 @@ export function DailyAyah() {
     )
   }
 
+  // Safely access translations
+  const translationText =
+    verse.translations && verse.translations[0] ? verse.translations[0].text : "Translation not available"
+
   return (
     <div className="mx-auto max-w-3xl rounded-lg border bg-background p-6 shadow-sm">
       <div className="mb-6 text-center">
         <p className="mb-4 text-2xl font-arabic leading-relaxed text-emerald-800 dark:text-emerald-200" dir="rtl">
           {verse.text_uthmani}
         </p>
-        <p className="text-lg text-muted-foreground">{verse.translations[0]?.text}</p>
+        <p className="text-lg text-muted-foreground">{translationText}</p>
         <p className="mt-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
           Surah {verse.verse_key.split(":")[0]} : Verse {verse.verse_number}
         </p>

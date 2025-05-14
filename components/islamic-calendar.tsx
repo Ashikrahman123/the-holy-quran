@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Badge } from "@/components/ui/badge"
 
 interface HijriDate {
   day: number
@@ -216,25 +217,28 @@ export function IslamicCalendar() {
       ) : hijriDate ? (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-xl font-bold">{hijriDate.day}</h3>
-              <p className="text-sm font-medium">{hijriDate.monthName}</p>
-              <p className="text-xs text-muted-foreground">{hijriDate.year} AH</p>
+            <div className="flex items-center gap-2">
+              <div className="bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-100 rounded-full h-10 w-10 flex items-center justify-center text-lg font-bold">
+                {hijriDate.day}
+              </div>
+              <div>
+                <p className="font-medium">{hijriDate.monthName}</p>
+                <p className="text-xs text-muted-foreground">{hijriDate.year} AH</p>
+              </div>
             </div>
             <div className="text-right">
-              <p className="text-sm font-medium">Gregorian</p>
-              <p className="text-xs text-muted-foreground">
+              <Badge variant="outline">
                 {new Date().toLocaleDateString(undefined, {
                   year: "numeric",
                   month: "short",
                   day: "numeric",
                 })}
-              </p>
+              </Badge>
             </div>
           </div>
 
-          <div className="pt-3 border-t">
-            <h4 className="font-medium text-sm mb-2">Islamic Events:</h4>
+          <div className="pt-2 border-t">
+            <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Upcoming Events</h4>
             <ul className="space-y-1">
               {upcomingEvents.map((event, index) => (
                 <li key={index} className="text-xs flex items-start">

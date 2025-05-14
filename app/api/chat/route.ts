@@ -20,6 +20,10 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json()
 
+    if (!process.env.XAI_API_KEY) {
+      throw new Error("XAI_API_KEY environment variable is not set")
+    }
+
     // Format messages for the AI SDK
     const formattedMessages = messages.map((msg: any) => ({
       role: msg.role,
@@ -41,10 +45,20 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Error in chat API:", error)
 
-    // Return a friendly error message
-    return Response.json({
-      response:
-        "As-salamu alaykum! I apologize, but I'm having trouble connecting to my knowledge base right now. Please try again in a moment, insha'Allah.",
-    })
+    // Return a detailed error message
+    let errorMessage = "An unknown error occurred"
+
+    if (error instanceof Error) {
+      errorMessage = error.message
+    }
+
+    return Response.json(
+      {
+        error: errorMessage,
+        response:
+          "As-salamu alaykum! I apologize, but I'm having trouble connecting to my knowledge base right now. Please try again in a moment, insha'Allah.",
+      },
+      { status: 500 },
+    )
   }
 }

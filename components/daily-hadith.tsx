@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Share2, RefreshCw } from "lucide-react"
@@ -171,43 +170,37 @@ export function DailyHadith() {
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          <span>Daily Hadith</span>
-          <Button variant="ghost" size="sm" onClick={fetchHadith} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-            <span className="sr-only">Refresh</span>
-          </Button>
-        </CardTitle>
-        <CardDescription>Wisdom from the Prophet Muhammad (ﷺ)</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-        ) : hadith ? (
-          <div className="space-y-4">
-            <h3 className="font-medium">{hadith.title}</h3>
-            <p className="text-sm">{hadith.text}</p>
+    <div className="w-full">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="font-medium">Daily Hadith</h3>
+        <Button variant="ghost" size="sm" onClick={fetchHadith} disabled={isLoading} className="h-8 w-8 p-0">
+          <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+          <span className="sr-only">Refresh</span>
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+        </div>
+      ) : hadith ? (
+        <div className="space-y-3">
+          <h4 className="font-medium text-sm text-emerald-600 dark:text-emerald-400">{hadith.title}</h4>
+          <p className="text-sm">{hadith.text}</p>
+          <div className="flex justify-between items-end">
             <div className="text-xs text-muted-foreground">
               <p>Narrator: {hadith.narrator}</p>
               <p>Source: {hadith.source}</p>
             </div>
+            <Button variant="ghost" size="sm" onClick={handleShare} className="h-8 w-8 p-0">
+              <Share2 className="h-4 w-4" />
+              <span className="sr-only">Share</span>
+            </Button>
           </div>
-        ) : null}
-      </CardContent>
-      {hadith && !isLoading && (
-        <CardFooter>
-          <Button variant="outline" size="sm" className="ml-auto" onClick={handleShare}>
-            <Share2 className="h-4 w-4 mr-2" />
-            Share
-          </Button>
-        </CardFooter>
-      )}
-    </Card>
+        </div>
+      ) : null}
+    </div>
   )
 }
