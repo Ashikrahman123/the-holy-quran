@@ -1,266 +1,128 @@
 import { Button } from "@/components/ui/button"
-import { MainNav } from "@/components/main-nav"
-import { Footer } from "@/components/footer"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Search, CheckCircle, Users, BookOpen, Globe } from "lucide-react"
-import Image from "next/image"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Mail, Github, Linkedin, ExternalLink } from "lucide-react"
 import Link from "next/link"
 
 export default function AboutPage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <MainNav />
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Link href="/search">
-              <Button variant="ghost" size="icon">
-                <Search className="h-5 w-5" />
-                <span className="sr-only">Search</span>
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-      <main className="flex-1 pb-16 md:pb-0">
-        <div className="container py-8 sm:py-10">
-          <section className="container py-12 md:py-16 lg:py-20">
-            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
-              <div className="space-y-4">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">About Our Mission</h1>
-                <p className="text-muted-foreground md:text-xl">
-                  Our mission is to make the Holy Quran accessible to everyone around the world, providing accurate
-                  translations, beautiful recitations, and insightful explanations.
-                </p>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Link href="/read">
-                    <Button className="bg-emerald-600 hover:bg-emerald-700">
-                      <BookOpen className="mr-2 h-4 w-4" />
-                      Read Quran
-                    </Button>
-                  </Link>
-                  <Link href="/about#team">
-                    <Button variant="outline">
-                      <Users className="mr-2 h-4 w-4" />
-                      Meet Our Team
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-              <div className="relative mx-auto aspect-video overflow-hidden rounded-xl border-8 border-emerald-50 dark:border-emerald-950 lg:aspect-square lg:h-[500px] lg:w-[500px]">
-                <Image
-                  src="/placeholder.svg?height=500&width=500"
-                  alt="About Our Mission"
-                  fill
-                  className="object-cover"
-                />
-              </div>
+    <div className="container mx-auto px-4 py-8 md:py-12">
+      <section className="mb-12 text-center">
+        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4 text-emerald-800 dark:text-emerald-200">
+          About This Project
+        </h1>
+        <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          A personal endeavor for the sake of Allah (SWT) and the Muslim Ummah.
+        </p>
+      </section>
+
+      <section className="grid md:grid-cols-2 gap-8 mb-12">
+        <Card className="bg-emerald-50 dark:bg-emerald-950 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-2xl font-semibold text-emerald-700 dark:text-emerald-300">
+              Meet the Developer
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-lg text-gray-700 dark:text-gray-300">
+            <p>
+              Assalamu Alaikum! I'm <span className="font-bold">Mohamed Ashik Rahman Ameerdeen</span>, a software
+              developer with a passion for creating meaningful digital experiences. This website, "The Holy Quran," is a
+              personal project born out of a desire to contribute to good deeds (Sadaqah Jariyah) and serve the Muslim
+              community.
+            </p>
+            <p>
+              It was developed entirely as a solo endeavor, driven by the intention to provide a free, accessible, and
+              user-friendly platform for engaging with the Quran and Islamic knowledge. This project is not for
+              financial gain; rather, it is an offering for the pleasure of Allah (SWT).
+            </p>
+            <div className="flex flex-wrap gap-4 pt-2">
+              <Link href="mailto:ashikr142@gmail.com" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="gap-2 bg-transparent">
+                  <Mail className="h-5 w-5" /> Email Me
+                </Button>
+              </Link>
+              <Link href="https://github.com/Ashikrahman123" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="gap-2 bg-transparent">
+                  <Github className="h-5 w-5" /> GitHub
+                </Button>
+              </Link>
+              <Link href="https://www.linkedin.com/in/mohamed-asik-rahman-ameerdeen-2661b01b4/" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="gap-2 bg-transparent">
+                  <Linkedin className="h-5 w-5" /> LinkedIn
+                </Button>
+              </Link>
             </div>
-          </section>
+          </CardContent>
+        </Card>
 
-          <section className="bg-muted/50 py-12 md:py-16 lg:py-20">
-            <div className="container">
-              <div className="mb-10 text-center">
-                <h2 className="mb-2 text-3xl font-bold">Our Vision</h2>
-                <p className="mx-auto max-w-[700px] text-muted-foreground">
-                  We envision a world where everyone can access, understand, and benefit from the wisdom of the Holy
-                  Quran, regardless of language or background.
-                </p>
-              </div>
+        <Card className="bg-emerald-50 dark:bg-emerald-950 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-2xl font-semibold text-emerald-700 dark:text-emerald-300">
+              APIs & Technologies Used
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-lg text-gray-700 dark:text-gray-300">
+            <p>This platform leverages several powerful third-party APIs and modern web technologies:</p>
+            <ul className="list-disc list-inside space-y-2">
+              <li>
+                <span className="font-medium">Al-Quran Cloud API:</span> Primary source for Quranic text, translations,
+                and chapter information.
+              </li>
+              <li>
+                <span className="font-medium">Quran.com API:</span> Backup source for Quranic data and search
+                functionality.
+              </li>
+              <li>
+                <span className="font-medium">QuranEnc.com API:</span> Specifically used for Tamil translations.
+              </li>
+              <li>
+                <span className="font-medium">EveryAyah.com & MP3Quran.net:</span> Sources for high-quality Quranic
+                audio recitations.
+              </li>
+              <li>
+                <span className="font-medium">Aladhan API:</span> Provides accurate, real-time prayer times and Hijri
+                calendar data based on location.
+              </li>
+              <li>
+                <span className="font-medium">xAI Grok (via AI SDK):</span> Powers the Islamic Assistant chatbot for
+                intelligent responses to user queries.
+              </li>
+              <li>
+                <span className="font-medium">Next.js:</span> The React framework for building the web application.
+              </li>
+              <li>
+                <span className="font-medium">Tailwind CSS & shadcn/ui:</span> For responsive and beautiful UI design.
+              </li>
+              <li>
+                <span className="font-medium">Neon Database & Vercel Blob:</span> For user authentication and caching
+                personalized data.
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+      </section>
 
-              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-                {visionPoints.map((point, index) => (
-                  <div key={index} className="rounded-lg border bg-background p-6 text-center shadow-sm">
-                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100">
-                      {point.icon}
-                    </div>
-                    <h3 className="mb-2 text-xl font-semibold">{point.title}</h3>
-                    <p className="text-muted-foreground">{point.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section id="team" className="container py-12 md:py-16 lg:py-20">
-            <div className="mb-10 text-center">
-              <h2 className="mb-2 text-3xl font-bold">Our Team</h2>
-              <p className="mx-auto max-w-[700px] text-muted-foreground">
-                Meet the dedicated individuals behind this project who are committed to making the Quran accessible to
-                all.
-              </p>
-            </div>
-
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {teamMembers.map((member, index) => (
-                <div key={index} className="rounded-lg border bg-background p-6 text-center shadow-sm">
-                  <div className="mx-auto mb-4 h-24 w-24 overflow-hidden rounded-full">
-                    <Image
-                      src={member.image || "/placeholder.svg"}
-                      alt={member.name}
-                      width={96}
-                      height={96}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <h3 className="mb-1 text-xl font-semibold">{member.name}</h3>
-                  <p className="mb-3 text-sm text-muted-foreground">{member.role}</p>
-                  <p className="text-muted-foreground">{member.bio}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="bg-muted/50 py-12 md:py-16 lg:py-20">
-            <div className="container">
-              <div className="mb-10 text-center">
-                <h2 className="mb-2 text-3xl font-bold">Islamic Authenticity</h2>
-                <p className="mx-auto max-w-[700px] text-muted-foreground">
-                  Our commitment to authenticity and accuracy in presenting the Holy Quran
-                </p>
-              </div>
-
-              <div className="grid gap-8 lg:grid-cols-2">
-                <div className="rounded-lg border bg-background p-6 shadow-sm">
-                  <h3 className="mb-4 text-xl font-semibold">Our Sources</h3>
-                  <ul className="space-y-3">
-                    {sources.map((source, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
-                        <div>
-                          <p className="font-medium">{source.name}</p>
-                          <p className="text-sm text-muted-foreground">{source.description}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="rounded-lg border bg-background p-6 shadow-sm">
-                  <h3 className="mb-4 text-xl font-semibold">Our Methodology</h3>
-                  <p className="mb-4 text-muted-foreground">
-                    We follow a rigorous process to ensure the accuracy and authenticity of all content on our platform:
-                  </p>
-                  <ul className="space-y-3">
-                    {methodologies.map((method, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
-                        <div>
-                          <p className="font-medium">{method.name}</p>
-                          <p className="text-sm text-muted-foreground">{method.description}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </main>
-      <Footer />
+      <section className="mb-12 text-center bg-yellow-50 dark:bg-yellow-950 p-6 rounded-lg shadow-md">
+        <h2 className="text-3xl font-bold mb-4 text-yellow-800 dark:text-yellow-200">Important Disclaimer</h2>
+        <p className="text-lg text-gray-800 dark:text-gray-200 mb-4">
+          Please note that all Quranic content, translations, and tafsir on this website are sourced via third-party
+          APIs. While efforts are made to use reliable sources, the content has <span className="font-bold">NOT</span>{" "}
+          been independently verified for accuracy by the developer.
+        </p>
+        <p className="text-lg text-gray-800 dark:text-gray-200 mb-6">
+          Users are strongly encouraged to cross-reference information with authentic Islamic sources and consult
+          qualified Islamic scholars for religious guidance.
+        </p>
+        <p className="text-lg text-gray-800 dark:text-gray-200">
+          In the spirit of collaborative knowledge-seeking and earning good deeds, if you perceive any errors,
+          inaccuracies, or have suggestions for improvement, please do not hesitate to report them. Your feedback is
+          invaluable in making this resource better for everyone.
+        </p>
+        <Link href="/contact">
+          <Button className="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
+            Report an Error or Suggestion <ExternalLink className="h-4 w-4" />
+          </Button>
+        </Link>
+      </section>
     </div>
   )
 }
-
-const visionPoints = [
-  {
-    title: "Accessibility",
-    description: "Making the Quran accessible to everyone regardless of language, location, or ability",
-    icon: <Globe className="h-6 w-6" />,
-  },
-  {
-    title: "Education",
-    description: "Providing educational resources to help understand the meanings and context of the Quran",
-    icon: <BookOpen className="h-6 w-6" />,
-  },
-  {
-    title: "Community",
-    description: "Building a global community of learners and scholars who share knowledge and insights",
-    icon: <Users className="h-6 w-6" />,
-  },
-  {
-    title: "Authenticity",
-    description: "Ensuring all content is authentic, accurate, and respectful of Islamic scholarship",
-    icon: <CheckCircle className="h-6 w-6" />,
-  },
-]
-
-const teamMembers = [
-  {
-    name: "Dr. Ahmed Hassan",
-    role: "Quranic Scholar & Founder",
-    bio: "Dr. Ahmed has dedicated his life to Quranic studies with over 20 years of experience in Islamic scholarship.",
-    image: "/placeholder.svg?height=96&width=96",
-  },
-  {
-    name: "Fatima Khan",
-    role: "Translation Specialist",
-    bio: "Fatima specializes in Arabic linguistics and ensures accurate translations across multiple languages.",
-    image: "/placeholder.svg?height=96&width=96",
-  },
-  {
-    name: "Omar Farooq",
-    role: "Technology Director",
-    bio: "Omar leads our technical team, ensuring the platform is accessible, responsive, and user-friendly.",
-    image: "/placeholder.svg?height=96&width=96",
-  },
-  {
-    name: "Aisha Rahman",
-    role: "Educational Content Manager",
-    bio: "Aisha develops educational resources to help users understand the context and meaning of Quranic verses.",
-    image: "/placeholder.svg?height=96&width=96",
-  },
-  {
-    name: "Yusuf Ali",
-    role: "Audio Quality Specialist",
-    bio: "Yusuf ensures all recitations meet the highest standards of tajweed and audio quality.",
-    image: "/placeholder.svg?height=96&width=96",
-  },
-  {
-    name: "Zainab Mohammed",
-    role: "Community Engagement",
-    bio: "Zainab builds connections with Islamic centers and educational institutions worldwide.",
-    image: "/placeholder.svg?height=96&width=96",
-  },
-]
-
-const sources = [
-  {
-    name: "Authentic Manuscripts",
-    description: "We reference the most authentic and widely accepted Quranic manuscripts and editions.",
-  },
-  {
-    name: "Scholarly Consensus",
-    description:
-      "Our content reflects the consensus of respected Islamic scholars across different schools of thought.",
-  },
-  {
-    name: "Verified Translations",
-    description: "All translations are verified by experts in both Arabic and the target language.",
-  },
-  {
-    name: "Certified Reciters",
-    description: "Our audio recitations come from certified Qaris known for their accuracy and beautiful recitation.",
-  },
-]
-
-const methodologies = [
-  {
-    name: "Multiple Reviews",
-    description: "Each piece of content undergoes multiple reviews by different scholars before publication.",
-  },
-  {
-    name: "Community Feedback",
-    description: "We welcome and incorporate feedback from our community of users and scholars.",
-  },
-  {
-    name: "Regular Updates",
-    description: "Our content is regularly reviewed and updated to ensure continued accuracy and relevance.",
-  },
-  {
-    name: "Transparent Sources",
-    description: "We clearly cite the sources and scholars behind our translations and interpretations.",
-  },
-]

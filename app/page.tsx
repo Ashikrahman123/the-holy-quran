@@ -12,33 +12,31 @@ import {
   Star,
   TrendingUp,
   BookMarked,
-  Bookmark,
   MessageCircle,
   Calendar,
   Clock,
+  Sparkles,
 } from "lucide-react"
-import { DailyAyah } from "@/components/daily-ayah"
-import { Footer } from "@/components/footer"
-import { MobileNav } from "@/components/mobile-nav"
-import { PrayerTimesWidget } from "@/components/prayer-times"
-import { getChapters, type Chapter, getLanguage, getRandomVerse } from "@/lib/api-service"
+import { getChapters, type Chapter, getLanguage } from "@/lib/api-service"
 import { Toaster } from "@/components/ui/toaster"
 import { Header } from "@/components/header"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { IslamicQuiz } from "@/components/islamic-quiz"
 import { WordScramble } from "@/components/word-scramble"
 import { MemoryMatch } from "@/components/memory-match"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DailyHadith } from "@/components/daily-hadith"
 import { IslamicCalendar } from "@/components/islamic-calendar"
 import { DhikrCounter } from "@/components/dhikr-counter"
+import { InspirationalVerse } from "@/components/inspirational-verse"
+import { NamesOfAllahWidget } from "@/components/names-of-allah-widget"
+import { PrayerTimes } from "@/components/prayer-times"
+import { Footer } from "@/components/footer"
+import { MobileNav } from "@/components/mobile-nav"
 
 export default function HomePage() {
   const [featuredSurahs, setFeaturedSurahs] = useState<Chapter[]>([])
   const [loading, setLoading] = useState(true)
-  const [inspirationalVerses, setInspirationalVerses] = useState<any[]>([])
-  const [loadingVerses, setLoadingVerses] = useState(true)
   const [stats, setStats] = useState({
     totalSurahs: 114,
     totalVerses: 6236,
@@ -66,75 +64,7 @@ export default function HomePage() {
       }
     }
 
-    const fetchInspirationalVerses = async () => {
-      setLoadingVerses(true)
-      try {
-        // Fetch 3 random verses for inspiration
-        const verses = []
-        for (let i = 0; i < 3; i++) {
-          try {
-            const verse = await getRandomVerse()
-            if (verse) verses.push(verse)
-          } catch (e) {
-            console.error("Error fetching random verse:", e)
-          }
-        }
-
-        // If API fails, use fallback verses
-        if (verses.length === 0) {
-          setInspirationalVerses([
-            {
-              verse_key: "2:286",
-              text_uthmani: "لَا يُكَلِّفُ ٱللَّهُ نَفْسًا إِلَّا وُسْعَهَا",
-              translations: [{ text: "Allah does not burden a soul beyond what it can bear" }],
-            },
-            {
-              verse_key: "94:5-6",
-              text_uthmani: "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا إِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
-              translations: [
-                { text: "For indeed, with hardship [will be] ease. Indeed, with hardship [will be] ease." },
-              ],
-            },
-            {
-              verse_key: "3:139",
-              text_uthmani: "وَلَا تَهِنُوا وَلَا تَحْزَنُوا وَأَنتُمُ ٱلْأَعْلَوْنَ إِن كُنتُم مُّؤْمِنِينَ",
-              translations: [
-                { text: "So do not weaken and do not grieve, and you will be superior if you are [true] believers." },
-              ],
-            },
-          ])
-        } else {
-          setInspirationalVerses(verses)
-        }
-      } catch (error) {
-        console.error("Error fetching inspirational verses:", error)
-        // Set fallback verses
-        setInspirationalVerses([
-          {
-            verse_key: "2:286",
-            text_uthmani: "لَا يُكَلِّفُ ٱللَّهُ نَفْسًا إِلَّا وُسْعَهَا",
-            translations: [{ text: "Allah does not burden a soul beyond what it can bear" }],
-          },
-          {
-            verse_key: "94:5-6",
-            text_uthmani: "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا إِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
-            translations: [{ text: "For indeed, with hardship [will be] ease. Indeed, with hardship [will be] ease." }],
-          },
-          {
-            verse_key: "3:139",
-            text_uthmani: "وَلَا تَهِنُوا وَلَا تَحْزَنُوا وَأَنتُمُ ٱلْأَعْلَوْنَ إِن كُنتُم مُّؤْمِنِينَ",
-            translations: [
-              { text: "So do not weaken and do not grieve, and you will be superior if you are [true] believers." },
-            ],
-          },
-        ])
-      } finally {
-        setLoadingVerses(false)
-      }
-    }
-
     fetchSurahs()
-    fetchInspirationalVerses()
   }, [])
 
   return (
@@ -184,8 +114,8 @@ export default function HomePage() {
               </div>
               <div className="relative mx-auto aspect-square max-w-md overflow-hidden rounded-full border-8 border-emerald-50 dark:border-emerald-950 lg:h-[400px] lg:w-[400px]">
                 <Image
-                  src="https://www.ahmadiyya-islam.org/wp-content/uploads/2021/04/malik-shibly-lKbz2ejxYbA-unsplash.jpg"
-                  alt="Holy Quran Illustration"
+                  src="/placeholder.svg?height=400&width=400&text=Islamic+Geometric+Pattern+%26+Calligraphy"
+                  alt="Islamic Geometric Pattern with Arabic Calligraphy - Representing Knowledge and Spiritual Guidance"
                   fill
                   className="object-cover"
                   priority
@@ -223,30 +153,30 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Main Dashboard Section - Improved Responsive Layout */}
+        {/* Main Dashboard Section - Improved Layout */}
         <section className="container py-10">
-          <div className="grid gap-6 md:grid-cols-12">
-            {/* Left Column - 8 columns on md+ */}
-            <div className="md:col-span-8 space-y-6">
-              {/* Daily Verse */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Left Column - Main Content */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Inspirational Verse */}
               <Card className="overflow-hidden shadow-md">
                 <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b">
                   <CardTitle className="flex items-center gap-2 text-xl">
-                    <BookOpen className="h-5 w-5 text-emerald-600" />
-                    Daily Verse of Reflection
+                    <Star className="h-5 w-5 text-emerald-600" />
+                    Inspirational Verse
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6 px-6">
-                  <DailyAyah />
+                  <InspirationalVerse />
                 </CardContent>
               </Card>
 
               {/* Dhikr Counter */}
               <Card className="overflow-hidden shadow-md">
-                <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b pb-4">
+                <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b">
                   <CardTitle className="flex items-center gap-2 text-lg">
-                    <Star className="h-5 w-5 text-emerald-600" />
-                    Dhikr Counter
+                    <Sparkles className="h-5 w-5 text-emerald-600" />
+                    Remembrance of Allah
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-5 px-5">
@@ -255,40 +185,40 @@ export default function HomePage() {
               </Card>
             </div>
 
-            {/* Right Column - 4 columns on md+ */}
-            <div className="md:col-span-4 space-y-6">
-              {/* Responsive Grid for Widgets */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-6">
-                {/* Prayer Times Widget */}
-                <Card className="overflow-hidden shadow-md h-full">
-                  <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b pb-4">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Clock className="h-5 w-5 text-emerald-600" />
-                      Prayer Times
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-5 px-5">
-                    <PrayerTimesWidget />
-                  </CardContent>
-                </Card>
+            {/* Right Column - Sidebar */}
+            <div className="space-y-6">
+              {/* Names of Allah Widget */}
+              <NamesOfAllahWidget />
 
-                {/* Islamic Calendar */}
-                <Card className="overflow-hidden shadow-md h-full">
-                  <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b pb-4">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Calendar className="h-5 w-5 text-emerald-600" />
-                      Islamic Calendar
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-5 px-5">
-                    <IslamicCalendar />
-                  </CardContent>
-                </Card>
-              </div>
+              {/* Prayer Times Widget */}
+              <Card className="overflow-hidden shadow-md">
+                <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Clock className="h-5 w-5 text-emerald-600" />
+                    Prayer Times
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-5 px-5">
+                  <PrayerTimes />
+                </CardContent>
+              </Card>
+
+              {/* Islamic Calendar */}
+              <Card className="overflow-hidden shadow-md">
+                <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Calendar className="h-5 w-5 text-emerald-600" />
+                    Islamic Calendar
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-5 px-5">
+                  <IslamicCalendar />
+                </CardContent>
+              </Card>
 
               {/* Daily Hadith */}
               <Card className="shadow-md">
-                <CardHeader className="pb-3 border-b">
+                <CardHeader className="pb-3 border-b bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <BookMarked className="h-5 w-5 text-emerald-600" />
                     Hadith of the Day
@@ -301,7 +231,7 @@ export default function HomePage() {
 
               {/* Quick Links */}
               <Card className="shadow-md">
-                <CardHeader className="pb-4 border-b">
+                <CardHeader className="pb-4 border-b bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <Star className="h-5 w-5 text-emerald-600" />
                     Quick Links
@@ -317,6 +247,13 @@ export default function HomePage() {
                       <ChevronRight className="h-4 w-4 text-emerald-600" />
                     </Link>
                     <Link
+                      href="/names-of-allah"
+                      className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted"
+                    >
+                      <span className="font-medium">99 Names of Allah</span>
+                      <ChevronRight className="h-4 w-4 text-emerald-600" />
+                    </Link>
+                    <Link
                       href="/read/36"
                       className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted"
                     >
@@ -328,13 +265,6 @@ export default function HomePage() {
                       className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted"
                     >
                       <span className="font-medium">Surah Ar-Rahman</span>
-                      <ChevronRight className="h-4 w-4 text-emerald-600" />
-                    </Link>
-                    <Link
-                      href="/read/67"
-                      className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted"
-                    >
-                      <span className="font-medium">Surah Al-Mulk</span>
                       <ChevronRight className="h-4 w-4 text-emerald-600" />
                     </Link>
                     <Link
@@ -403,75 +333,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Inspirational Verses Section - Improved Responsive Design */}
-        <section className="border-t border-b bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
-          <div className="container py-12">
-            <div className="mb-8 text-center">
-              <h2 className="text-2xl font-bold">Inspirational Verses</h2>
-              <p className="mt-2 text-muted-foreground">Find comfort and guidance in these selected verses</p>
-            </div>
-
-            <div className="grid gap-6 md:gap-8">
-              {loadingVerses
-                ? Array(3)
-                    .fill(0)
-                    .map((_, i) => (
-                      <Card key={i} className="overflow-hidden shadow-md">
-                        <CardHeader className="pb-0">
-                          <Skeleton className="h-4 w-24 mb-2" />
-                        </CardHeader>
-                        <CardContent className="pt-4">
-                          <Skeleton className="h-20 w-full mb-4" />
-                          <Skeleton className="h-12 w-full" />
-                        </CardContent>
-                      </Card>
-                    ))
-                : inspirationalVerses.map((verse, index) => (
-                    <Card key={index} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-                      <CardHeader className="pb-3 border-b bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/20">
-                        <CardTitle className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                          {verse.verse_key}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-4 px-5">
-                        <div className="grid md:grid-cols-2 gap-6 items-center">
-                          <div className="order-2 md:order-1">
-                            <p className="text-sm text-muted-foreground">
-                              {verse.translations && verse.translations[0]
-                                ? verse.translations[0].text
-                                : "Translation not available"}
-                            </p>
-                          </div>
-                          <div className="order-1 md:order-2">
-                            <p className="text-right font-arabic text-xl leading-relaxed" dir="rtl">
-                              {verse.text_uthmani}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="border-t pt-3 flex justify-between">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          asChild
-                          className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
-                        >
-                          <Link href={`/read/${verse.verse_key.split(":")[0]}#verse-${verse.verse_key.split(":")[1]}`}>
-                            <ChevronRight className="mr-1 h-4 w-4" />
-                            Read in Context
-                          </Link>
-                        </Button>
-                        <Button variant="ghost" size="sm" className="gap-1">
-                          <Bookmark className="h-4 w-4" />
-                          Bookmark
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-            </div>
-          </div>
-        </section>
-
         {/* Islamic Learning Games Section */}
         <section className="container py-12">
           <div className="mb-8 text-center">
@@ -491,17 +352,17 @@ export default function HomePage() {
                 Memory Match
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="quiz">
+            <TabsContent value="quiz" forceMount className="data-[state=inactive]:hidden">
               <div className="max-w-2xl mx-auto">
                 <IslamicQuiz />
               </div>
             </TabsContent>
-            <TabsContent value="scramble">
+            <TabsContent value="scramble" forceMount className="data-[state=inactive]:hidden">
               <div className="max-w-2xl mx-auto">
                 <WordScramble />
               </div>
             </TabsContent>
-            <TabsContent value="memory">
+            <TabsContent value="memory" forceMount className="data-[state=inactive]:hidden">
               <div className="max-w-2xl mx-auto">
                 <MemoryMatch />
               </div>

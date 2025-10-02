@@ -1,5 +1,6 @@
 import { xai } from "@ai-sdk/xai"
 import { streamText } from "ai"
+import { getBasicResponse } from "@/lib/islamic-knowledge"
 
 // System prompt to ensure Islamic focus
 const ISLAMIC_SYSTEM_PROMPT = `
@@ -12,6 +13,9 @@ Your responses should:
 5. Avoid controversial interpretations and note when scholars have differing opinions
 6. Use appropriate Islamic greetings and phrases
 7. Prioritize authentic sources of Islamic knowledge
+8. Format your responses with proper paragraphs and spacing for readability
+9. When quoting Quran, include both the Arabic text (if available) and translation
+10. When mentioning Hadith, include the source/collection name
 
 If asked about non-Islamic topics, gently redirect the conversation to Islamic knowledge.
 `
@@ -30,18 +34,37 @@ export async function POST(req: Request) {
       content: msg.content,
     }))
 
-    // Use the xAI SDK to generate a response
-    const stream = await streamText({
-      model: xai("grok-2"),
-      messages: formattedMessages,
-      system: ISLAMIC_SYSTEM_PROMPT,
-      maxTokens: 1000,
-    })
+    // Get the user's last message for fallback purposes
+    const userLastMessage = formattedMessages.filter((msg) => msg.role === "user").pop()?.content || ""
 
-    // Get the full text from the stream
-    const text = await stream.text
+    try {
+      // Use the xAI SDK to generate a response
+      const stream = await streamText({
+        model: xai("grok-2"),
+        messages: formattedMessages,
+        system: ISLAMIC_SYSTEM_PROMPT,
+        maxTokens: 1000,
+      })
 
-    return Response.json({ response: text })
+      // Get the full text from the stream
+      const text = await stream.text
+
+      return Response.json({ response: text })
+    } catch (aiError) {
+      console.error("AI service error:", aiError)
+
+      // Get a fallback response based on the user's query
+      const fallbackResponse = getBasicResponse(userLastMessage)
+
+      return Response.json(
+        {
+          response: fallbackResponse,
+          error: "AI service unavailable, using fallback response",
+          fallback: true,
+        },
+        { status: 200 },
+      ) // Still return 200 since we have a fallback
+    }
   } catch (error) {
     console.error("Error in chat API:", error)
 

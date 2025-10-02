@@ -104,22 +104,28 @@ export function AudioPlayer({ audioUrl, onNext, onPrevious, title, reciter, sura
     if (onPrevious) onPrevious()
   }
 
-  // If there's an error with this specific audio URL, show error state
-  const hasError = isCurrentPlayer && audioState.audioUrl && !audioState.isPlaying && audioState.currentTime === 0
+  // Fix the error detection logic - only show error if there's actually an error state
+  const hasError = isCurrentPlayer && audioState.error && !audioState.isPlaying
 
   if (hasError) {
     return (
       <div className="w-full rounded-md border bg-background p-2">
         <Alert variant="destructive" className="mb-2">
           <AlertDescription>
-            There was an error playing the audio. Please try again or use an alternative source.
+            Audio playback failed. This may be due to network issues or the audio file being unavailable.
           </AlertDescription>
         </Alert>
         <div className="flex justify-between">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => play(audioUrl!, title, reciter, surahNumber)}
+            onClick={() => {
+              // Clear error state before retrying
+              if (audioState.error) {
+                // Reset error state and try again
+                play(audioUrl!, title, reciter, surahNumber)
+              }
+            }}
             className="gap-1"
           >
             <RefreshCw className="h-3 w-3" />

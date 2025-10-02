@@ -409,14 +409,16 @@ export async function getChapterVerses(
           verse_key: `${chapterNumber}:${verse.numberInSurah}`,
           verse_number: verse.numberInSurah,
           text_uthmani: verse.text,
-          translations: [
-            {
-              id: 1,
-              text: translation ? translation.text : "Translation not available",
-              resource_id: 1,
-              resource_name: language === "ta" ? "Tamil" : "English",
-            },
-          ],
+          translations: translation?.text
+            ? [
+                {
+                  id: 1,
+                  text: translation.text,
+                  resource_id: 1,
+                  resource_name: language === "ta" ? "Tamil" : "English",
+                },
+              ]
+            : [], // Set to empty array if no translation text
         }
       })
 
@@ -544,11 +546,13 @@ export async function searchQuran(
       const results = data.data.matches.slice(0, size).map((match) => ({
         ...match,
         verse_key: `${match.surah}:${match.verse}`,
-        translations: [
-          {
-            text: match.text,
-          },
-        ],
+        translations: match.text
+          ? [
+              {
+                text: match.text,
+              },
+            ]
+          : [],
         highlighted: {
           text: match.text,
         },
@@ -716,11 +720,13 @@ export async function searchQuranAdvanced(
               allResults.push({
                 ...match,
                 verse_key: verseKey,
-                translations: [
-                  {
-                    text: match.text,
-                  },
-                ],
+                translations: match.text
+                  ? [
+                      {
+                        text: match.text,
+                      },
+                    ]
+                  : [],
                 highlighted: {
                   text: match.text,
                 },
@@ -1084,21 +1090,8 @@ import { getLanguage as getLanguageFromStorage } from "./language"
 
 export const getLanguage = getLanguageFromStorage
 
-// Add this function to ensure translations are always available
-// This is a partial update - only showing the function to add
+// Removed ensureTranslations function as it's no longer needed to force a translation string.
 
-export function ensureTranslations(verse: any): any {
-  if (!verse) return null
-
-  // If translations is undefined or empty, add a default translation
-  if (!verse.translations || verse.translations.length === 0) {
-    verse.translations = [{ text: "Translation not available" }]
-  }
-
-  return verse
-}
-
-// Then update the getRandomVerse function to use this helper
 export async function getRandomVerse(language = "en"): Promise<any> {
   try {
     // Generate random chapter (1-114) and verse
@@ -1110,52 +1103,81 @@ export async function getRandomVerse(language = "en"): Promise<any> {
 
     if (!chapter) return null
 
-    const randomVerse = Math.floor(Math.random() * chapter.verses_count) + 1
+    const randomVerseNumber = Math.floor(Math.random() * chapter.verses_count) + 1
+    const verseKey = `${randomChapter}:${randomVerseNumber}`
 
+    // Try primary API (Quran.com) first for both Arabic and translation
+    console.log(`Attempting to fetch random verse from Quran.com API: ${verseKey}`)
     const response = await fetch(
-      `${QURAN_COM_API_BASE}/verses/by_key/${randomChapter}:${randomVerse}?language=${language}&words=true&translations=131`,
+      `${QURAN_COM_API_BASE}/verses/by_key/${verseKey}?language=${language}&words=true&translations=131`,
     )
-    if (!response.ok) throw new Error(`Failed to fetch random verse: ${response.status} ${response.statusText}`)
-    const data = await response.json()
-    const verse = data.verse
-    // Before returning the verse, ensure it has translations
-    return ensureTranslations(verse)
+    if (response.ok) {
+      const data = await response.json()
+      const verse = data.verse
+      // Return verse as is; DailyAyah will handle conditional rendering of translation
+      return verse
+    } else {
+      console.warn(`Failed to fetch from Quran.com API (${response.status}), falling back...`)
+      throw new Error(`Failed to fetch from Quran.com: ${response.status}`) // Throw to trigger fallback
+    }
   } catch (primaryError) {
-    console.error("Error fetching random verse:", primaryError)
+    console.error("Error fetching random verse from primary API:", primaryError)
 
     try {
-      // Try backup API
+      // Fallback: Try Al-Quran Cloud for Arabic text, then Quran.com for translation
       const randomChapter = Math.floor(Math.random() * 114) + 1
       const backupResponse = await fetch(`${ALQURAN_API_BASE}/surah/${randomChapter}`)
-      if (!backupResponse.ok) throw new Error(`Backup API failed: ${backupResponse.status}`)
+
+      if (!backupResponse.ok) {
+        throw new Error(`Backup API failed to fetch Arabic text: ${backupResponse.status}`)
+      }
 
       const backupData = await backupResponse.json()
       if (backupData.code === 200 && backupData.data && Array.isArray(backupData.data.ayahs)) {
         const ayahs = backupData.data.ayahs
         const randomIndex = Math.floor(Math.random() * ayahs.length)
         const randomAyah = ayahs[randomIndex]
+        const verseKey = `${randomChapter}:${randomAyah.numberInSurah}`
+
+        let translations: { id: number; text: string; resource_id: number; resource_name: string }[] = []
+
+        // Attempt to fetch translation for this specific ayah from Quran.com
+        try {
+          console.log(`Attempting to fetch translation for ${verseKey} from Quran.com API (fallback)`)
+          const translationResponse = await fetch(
+            `${QURAN_COM_API_BASE}/verses/by_key/${verseKey}?language=${language}&translations=131`,
+          )
+          if (translationResponse.ok) {
+            const translationData = await translationResponse.json()
+            if (translationData.verse?.translations && translationData.verse.translations.length > 0) {
+              translations = translationData.verse.translations.map((t: any) => ({
+                id: t.id || 1,
+                text: t.text,
+                resource_id: t.resource_id || 1,
+                resource_name: t.resource_name || "Quran.com",
+              }))
+            }
+          } else {
+            console.warn(`Failed to fetch translation from Quran.com API (fallback): ${translationResponse.status}`)
+          }
+        } catch (translationFetchError) {
+          console.warn("Error fetching specific ayah translation for fallback:", translationFetchError)
+        }
 
         // Transform to match our interface
         const verse = {
-          id: randomIndex + 1,
-          verse_key: `${randomChapter}:${randomAyah.numberInSurah}`,
+          id: randomAyah.number,
+          verse_key: verseKey,
           text_uthmani: randomAyah.text,
           verse_number: randomAyah.numberInSurah,
-          words: [],
-          translations: [
-            {
-              id: 1,
-              text: randomAyah.text, // No translation in backup API
-              resource_id: 1,
-              resource_name: "Default",
-            },
-          ],
+          words: [], // Al-Quran Cloud doesn't provide words in this format
+          translations: translations, // Will be empty array if no translation found
         }
-        return ensureTranslations(verse)
+        return verse
       }
-      throw new Error("Invalid data from backup API")
+      throw new Error("Invalid data from backup API (Al-Quran Cloud)")
     } catch (backupError) {
-      console.error("Error with backup random verse:", backupError)
+      console.error("Error with backup random verse fetching:", backupError)
       return null
     }
   }

@@ -6,28 +6,16 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { MessageSquare, Send, RefreshCw, Bot, AlertCircle } from "lucide-react"
+import { MessageSquare, Send, RefreshCw, Bot, AlertCircle, Wifi, WifiOff } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { getBasicResponse } from "@/lib/islamic-knowledge"
 
 interface Message {
   id: string
   content: string
   role: "user" | "assistant"
   timestamp: Date
-}
-
-// Basic Islamic knowledge for fallback responses
-const basicIslamicResponses = {
-  greeting: "As-salamu alaykum! How can I help you learn about Islam today?",
-  error:
-    "I apologize, but I'm having trouble connecting to my knowledge base right now. Please try again in a moment, insha'Allah.",
-  pillars:
-    "The Five Pillars of Islam are: 1) Shahada (Faith), 2) Salah (Prayer), 3) Zakat (Charity), 4) Sawm (Fasting during Ramadan), and 5) Hajj (Pilgrimage to Mecca).",
-  prayer:
-    "Muslims pray five times a day: Fajr (dawn), Dhuhr (noon), Asr (afternoon), Maghrib (sunset), and Isha (night).",
-  quran:
-    "The Quran is the holy book of Islam, believed to be the word of Allah as revealed to Prophet Muhammad through the angel Gabriel over 23 years.",
 }
 
 export function IslamicChatbot() {
@@ -42,13 +30,48 @@ export function IslamicChatbot() {
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
+  const [connectionStatus, setConnectionStatus] = useState<"online" | "offline" | "checking">("checking")
+  const [retryCount, setRetryCount] = useState(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
+
+  // Check connection status on mount
+  useEffect(() => {
+    checkConnectionStatus()
+  }, [])
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
+
+  // Check if we can connect to the API
+  const checkConnectionStatus = async () => {
+    setConnectionStatus("checking")
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+
+      const response = await fetch("/api/chat/health", {
+        method: "GET",
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+
+      if (response.ok) {
+        setConnectionStatus("online")
+        setApiError(null)
+      } else {
+        setConnectionStatus("offline")
+        setApiError("Connection to Islamic knowledge base is currently unavailable")
+      }
+    } catch (error) {
+      console.error("Connection check failed:", error)
+      setConnectionStatus("offline")
+      setApiError("Unable to connect to Islamic knowledge base")
+    }
+  }
 
   const handleSend = async () => {
     if (!input.trim()) return
@@ -87,8 +110,23 @@ export function IslamicChatbot() {
       }
 
       setMessages((prev) => [...prev, assistantMessage])
+
+      // Reset retry count on success
+      if (retryCount > 0) {
+        setRetryCount(0)
+        setConnectionStatus("online")
+        toast({
+          title: "Connection Restored",
+          description: "Successfully reconnected to the Islamic knowledge base.",
+          variant: "default",
+        })
+      }
     } catch (error) {
       console.error("Error getting response:", error)
+      setRetryCount((prev) => prev + 1)
+
+      // Set connection status
+      setConnectionStatus("offline")
 
       // Set API error message
       if (error instanceof Error) {
@@ -97,10 +135,13 @@ export function IslamicChatbot() {
         setApiError("An unknown error occurred")
       }
 
+      // Get fallback response based on user's query
+      const fallbackResponse = getBasicResponse(input)
+
       // Add a fallback response
       const fallbackMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: basicIslamicResponses.error,
+        content: fallbackResponse,
         role: "assistant",
         timestamp: new Date(),
       }
@@ -109,7 +150,7 @@ export function IslamicChatbot() {
 
       toast({
         title: "Connection Issue",
-        description: "Having trouble connecting to the Islamic knowledge base.",
+        description: "Using offline knowledge base. Some information may be limited.",
         variant: "destructive",
       })
     } finally {
@@ -155,15 +196,9 @@ export function IslamicChatbot() {
         throw new Error("Request timed out. Please try again.")
       }
 
-      // Provide fallback responses based on keywords
-      const lowercaseInput = userInput.toLowerCase()
-
-      if (lowercaseInput.includes("pillar") || lowercaseInput.includes("foundation")) {
-        return basicIslamicResponses.pillars
-      } else if (lowercaseInput.includes("pray") || lowercaseInput.includes("salah")) {
-        return basicIslamicResponses.prayer
-      } else if (lowercaseInput.includes("quran") || lowercaseInput.includes("book")) {
-        return basicIslamicResponses.quran
+      // If we've already tried multiple times, use the fallback knowledge
+      if (retryCount >= 2) {
+        return getBasicResponse(userInput)
       }
 
       throw error // Re-throw to trigger the fallback message
@@ -186,13 +221,43 @@ export function IslamicChatbot() {
     })
   }
 
+  const retryConnection = async () => {
+    toast({
+      title: "Checking Connection",
+      description: "Attempting to reconnect to the Islamic knowledge base...",
+    })
+    await checkConnectionStatus()
+  }
+
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5 text-emerald-500" />
-          Islamic Assistant
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-emerald-500" />
+            <CardTitle>Islamic Assistant</CardTitle>
+          </div>
+          <div className="flex items-center gap-2">
+            {connectionStatus === "online" && (
+              <div className="flex items-center text-xs text-emerald-600 gap-1">
+                <Wifi className="h-3 w-3" />
+                <span>Online</span>
+              </div>
+            )}
+            {connectionStatus === "offline" && (
+              <div className="flex items-center text-xs text-amber-600 gap-1">
+                <WifiOff className="h-3 w-3" />
+                <span>Offline</span>
+              </div>
+            )}
+            {connectionStatus === "checking" && (
+              <div className="flex items-center text-xs text-muted-foreground gap-1">
+                <RefreshCw className="h-3 w-3 animate-spin" />
+                <span>Checking...</span>
+              </div>
+            )}
+          </div>
+        </div>
         <CardDescription>Ask questions about Islam and Islamic practices</CardDescription>
       </CardHeader>
 
@@ -200,9 +265,29 @@ export function IslamicChatbot() {
         {apiError && (
           <Alert variant="destructive" className="mx-4 mt-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
-              {apiError}. The system will use fallback responses until the connection is restored.
+            <AlertTitle>Connection Issue</AlertTitle>
+            <AlertDescription className="flex flex-col gap-2">
+              <p>{apiError}</p>
+              <p className="text-sm">Using offline knowledge base with limited information.</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-fit"
+                onClick={retryConnection}
+                disabled={connectionStatus === "checking"}
+              >
+                {connectionStatus === "checking" ? (
+                  <>
+                    <RefreshCw className="h-3 w-3 mr-2 animate-spin" />
+                    Checking...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-3 w-3 mr-2" />
+                    Retry Connection
+                  </>
+                )}
+              </Button>
             </AlertDescription>
           </Alert>
         )}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Copy, Share2, VolumeIcon as VolumeUp, RefreshCw } from "lucide-react"
-import { getRandomVerse, type Verse, getVerseRecitation } from "@/lib/api"
+import { getRandomVerse, type Verse, getVerseRecitation } from "@/lib/api-service"
 import { getLanguage } from "@/lib/language"
 import { addBookmark, isBookmarked } from "@/lib/bookmarks"
 import { Bookmark } from "lucide-react"
@@ -28,11 +28,6 @@ export function DailyAyah() {
       const language = getLanguage()
       const randomVerse = await getRandomVerse(language)
       if (randomVerse) {
-        // Ensure translations array exists and has at least one item
-        if (!randomVerse.translations || randomVerse.translations.length === 0) {
-          randomVerse.translations = [{ text: "Translation not available" }]
-        }
-
         setVerse(randomVerse)
         setBookmarked(isBookmarked(randomVerse.verse_key))
 
@@ -80,10 +75,9 @@ export function DailyAyah() {
   const handleCopy = () => {
     if (!verse) return
 
-    // Safely access translations
-    const translationText =
-      verse.translations && verse.translations[0] ? verse.translations[0].text : "Translation not available"
-    const textToCopy = `${verse.text_uthmani}\n\n${translationText}\n\n(Quran ${verse.verse_key})`
+    // Get translation text if available, otherwise an empty string
+    const translationText = verse.translations?.[0]?.text || ""
+    const textToCopy = `${verse.text_uthmani}${translationText ? `\n\n${translationText}` : ""}\n\n(Quran ${verse.verse_key})`
 
     navigator.clipboard.writeText(textToCopy)
     setCopied(true)
@@ -101,9 +95,8 @@ export function DailyAyah() {
 
     try {
       if (!bookmarked) {
-        // Safely access translations
-        const translationText =
-          verse.translations && verse.translations[0] ? verse.translations[0].text : "Translation not available"
+        // Get translation text if available, otherwise a placeholder for bookmarking
+        const translationText = verse.translations?.[0]?.text || "No translation available"
 
         addBookmark({
           verseKey: verse.verse_key,
@@ -161,15 +154,14 @@ export function DailyAyah() {
   const handleShare = () => {
     if (!verse) return
 
-    // Safely access translations
-    const translationText =
-      verse.translations && verse.translations[0] ? verse.translations[0].text : "Translation not available"
+    // Get translation text if available, otherwise an empty string
+    const translationText = verse.translations?.[0]?.text || ""
 
     if (navigator.share) {
       navigator
         .share({
           title: `Quran Verse ${verse.verse_key}`,
-          text: `${verse.text_uthmani}\n\n${translationText}\n\n(Quran ${verse.verse_key})`,
+          text: `${verse.text_uthmani}${translationText ? `\n\n${translationText}` : ""}\n\n(Quran ${verse.verse_key})`,
           url: window.location.href,
         })
         .catch((err) => {
@@ -236,9 +228,8 @@ export function DailyAyah() {
     )
   }
 
-  // Safely access translations
-  const translationText =
-    verse.translations && verse.translations[0] ? verse.translations[0].text : "Translation not available"
+  // Get translation text if available, otherwise an empty string
+  const translationText = verse.translations?.[0]?.text || ""
 
   return (
     <div className="mx-auto max-w-3xl rounded-lg border bg-background p-6 shadow-sm">
@@ -246,17 +237,17 @@ export function DailyAyah() {
         <p className="mb-4 text-2xl font-arabic leading-relaxed text-emerald-800 dark:text-emerald-200" dir="rtl">
           {verse.text_uthmani}
         </p>
-        <p className="text-lg text-muted-foreground">{translationText}</p>
+        {translationText && <p className="text-lg text-muted-foreground">{translationText}</p>}
         <p className="mt-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
           Surah {verse.verse_key.split(":")[0]} : Verse {verse.verse_number}
         </p>
       </div>
       <div className="flex flex-wrap justify-center gap-2">
-        <Button variant="outline" size="sm" className="gap-1" onClick={handlePlay} disabled={!audioUrl}>
+        <Button variant="outline" size="sm" className="gap-1 bg-transparent" onClick={handlePlay} disabled={!audioUrl}>
           <VolumeUp className="h-4 w-4" />
           {isPlaying ? "Pause" : "Listen"}
         </Button>
-        <Button variant="outline" size="sm" className="gap-1" onClick={handleCopy}>
+        <Button variant="outline" size="sm" className="gap-1 bg-transparent" onClick={handleCopy}>
           <Copy className="h-4 w-4" />
           {copied ? "Copied!" : "Copy"}
         </Button>
@@ -269,7 +260,7 @@ export function DailyAyah() {
           <Bookmark className={`h-4 w-4 ${bookmarked ? "fill-emerald-600 dark:fill-emerald-200" : ""}`} />
           {bookmarked ? "Bookmarked" : "Bookmark"}
         </Button>
-        <Button variant="outline" size="sm" className="gap-1" onClick={handleShare}>
+        <Button variant="outline" size="sm" className="gap-1 bg-transparent" onClick={handleShare}>
           <Share2 className="h-4 w-4" />
           Share
         </Button>

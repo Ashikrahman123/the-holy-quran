@@ -1,257 +1,253 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Calendar, ChevronLeft, ChevronRight, Star } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
-interface HijriDate {
+interface IslamicDate {
   day: number
-  month: number
-  monthName: string
+  month: string
   year: number
-  format: string
+  gregorianDate: string
 }
 
+interface IslamicEvent {
+  date: string
+  name: string
+  type: "religious" | "historical" | "special"
+  description?: string
+}
+
+const islamicMonths = [
+  "Muharram",
+  "Safar",
+  "Rabi' al-Awwal",
+  "Rabi' al-Thani",
+  "Jumada al-Awwal",
+  "Jumada al-Thani",
+  "Rajab",
+  "Sha'ban",
+  "Ramadan",
+  "Shawwal",
+  "Dhul-Qi'dah",
+  "Dhul-Hijjah",
+]
+
+const islamicEvents: IslamicEvent[] = [
+  {
+    date: "1-1",
+    name: "Islamic New Year",
+    type: "religious",
+    description: "Beginning of the Islamic calendar year",
+  },
+  {
+    date: "10-1",
+    name: "Day of Ashura",
+    type: "religious",
+    description: "Day of fasting and remembrance",
+  },
+  {
+    date: "12-3",
+    name: "Mawlid an-Nabi",
+    type: "religious",
+    description: "Birth of Prophet Muhammad (PBUH)",
+  },
+  {
+    date: "27-7",
+    name: "Isra and Mi'raj",
+    type: "religious",
+    description: "Night Journey of Prophet Muhammad (PBUH)",
+  },
+  {
+    date: "15-8",
+    name: "Laylat al-Bara'at",
+    type: "religious",
+    description: "Night of Forgiveness",
+  },
+  {
+    date: "1-9",
+    name: "Beginning of Ramadan",
+    type: "religious",
+    description: "Start of the holy month of fasting",
+  },
+  {
+    date: "21-9",
+    name: "Laylat al-Qadr (estimated)",
+    type: "religious",
+    description: "Night of Decree",
+  },
+  {
+    date: "1-10",
+    name: "Eid al-Fitr",
+    type: "religious",
+    description: "Festival of Breaking the Fast",
+  },
+  {
+    date: "9-12",
+    name: "Day of Arafah",
+    type: "religious",
+    description: "Day of Hajj pilgrimage",
+  },
+  {
+    date: "10-12",
+    name: "Eid al-Adha",
+    type: "religious",
+    description: "Festival of Sacrifice",
+  },
+]
+
 export function IslamicCalendar() {
-  const [hijriDate, setHijriDate] = useState<HijriDate | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [upcomingEvents, setUpcomingEvents] = useState<string[]>([])
+  const [currentDate, setCurrentDate] = useState<IslamicDate | null>(null)
+  const [selectedMonth, setSelectedMonth] = useState<number>(0)
+  const [todayEvents, setTodayEvents] = useState<IslamicEvent[]>([])
 
-  useEffect(() => {
-    const fetchHijriDate = async () => {
-      setIsLoading(true)
+  // Simplified Hijri date conversion (in a real app, use a proper library)
+  const convertToHijri = (gregorianDate: Date): IslamicDate => {
+    // This is a simplified conversion - in production, use a proper Hijri calendar library
+    const hijriEpoch = new Date("622-07-16") // Approximate start of Hijri calendar
+    const daysDiff = Math.floor((gregorianDate.getTime() - hijriEpoch.getTime()) / (1000 * 60 * 60 * 24))
 
-      try {
-        // Get current date in format DD-MM-YYYY
-        const today = new Date()
-        const day = String(today.getDate()).padStart(2, "0")
-        const month = String(today.getMonth() + 1).padStart(2, "0")
-        const year = today.getFullYear()
-        const formattedDate = `${day}-${month}-${year}`
+    // Simplified calculation (not astronomically accurate)
+    const hijriYear = Math.floor(daysDiff / 354) + 1
+    const dayOfYear = daysDiff % 354
+    const hijriMonth = Math.floor(dayOfYear / 29.5)
+    const hijriDay = Math.floor(dayOfYear % 29.5) + 1
 
-        // Try to fetch from API with specific date
-        const response = await fetch(`https://api.aladhan.com/v1/gToH/${formattedDate}`, {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-          },
-          cache: "no-cache",
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-
-          if (data.code === 200 && data.data && data.data.hijri) {
-            const hijri = data.data.hijri
-
-            setHijriDate({
-              day: Number.parseInt(hijri.day),
-              month: Number.parseInt(hijri.month.number),
-              monthName: hijri.month.en,
-              year: Number.parseInt(hijri.year),
-              format: hijri.date,
-            })
-
-            // Set upcoming events based on month
-            setUpcomingEventsForMonth(Number.parseInt(hijri.month.number))
-
-            // Cache the result in localStorage to reduce API calls
-            localStorage.setItem(
-              "hijriDate",
-              JSON.stringify({
-                date: hijri.date,
-                day: Number.parseInt(hijri.day),
-                month: Number.parseInt(hijri.month.number),
-                monthName: hijri.month.en,
-                year: Number.parseInt(hijri.year),
-                timestamp: Date.now(),
-              }),
-            )
-          } else {
-            throw new Error("Invalid API response")
-          }
-        } else {
-          throw new Error(`API error: ${response.status}`)
-        }
-      } catch (error) {
-        console.error("Error fetching Hijri date:", error)
-
-        // Try to use cached data first
-        const cachedData = localStorage.getItem("hijriDate")
-        if (cachedData) {
-          try {
-            const parsed = JSON.parse(cachedData)
-            // Use cached data if it's less than 24 hours old
-            if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
-              setHijriDate({
-                day: parsed.day,
-                month: parsed.month,
-                monthName: parsed.monthName,
-                year: parsed.year,
-                format: parsed.date,
-              })
-              setUpcomingEventsForMonth(parsed.month)
-              setIsLoading(false)
-              return
-            }
-          } catch (e) {
-            console.error("Error parsing cached Hijri date:", e)
-          }
-        }
-
-        // Fallback: Calculate approximate Hijri date
-        const today = new Date()
-
-        // More accurate approximation
-        // Hijri calendar is roughly 354 days per year (vs 365 for Gregorian)
-        // This means Hijri years are about 3% shorter
-        const gregorianYear = today.getFullYear()
-        const gregorianDayOfYear = Math.floor((today - new Date(gregorianYear, 0, 0)) / (1000 * 60 * 60 * 24))
-
-        // Approximate conversion
-        // Starting from known point: Jan 1, 2023 was roughly 4 Jumada al-Akhirah 1444
-        const knownGregorianDate = new Date(2023, 0, 1)
-        const knownHijriYear = 1444
-        const knownHijriMonth = 6 // Jumada al-Akhirah
-        const knownHijriDay = 4
-
-        // Calculate days between known date and today
-        const daysDiff = Math.floor((today - knownGregorianDate) / (1000 * 60 * 60 * 24))
-
-        // Convert to Hijri days (accounting for shorter year)
-        const hijriDaysDiff = Math.floor(daysDiff * 1.03)
-
-        // Calculate new Hijri date
-        let hijriYear = knownHijriYear
-        let hijriMonth = knownHijriMonth
-        let hijriDay = knownHijriDay + hijriDaysDiff
-
-        // Adjust for month lengths (approximating 30 days per month)
-        while (hijriDay > 30) {
-          hijriDay -= 30
-          hijriMonth++
-
-          if (hijriMonth > 12) {
-            hijriMonth = 1
-            hijriYear++
-          }
-        }
-
-        const monthNames = [
-          "Muharram",
-          "Safar",
-          "Rabi al-Awwal",
-          "Rabi al-Thani",
-          "Jumada al-Awwal",
-          "Jumada al-Thani",
-          "Rajab",
-          "Sha'ban",
-          "Ramadan",
-          "Shawwal",
-          "Dhu al-Qadah",
-          "Dhu al-Hijjah",
-        ]
-
-        setHijriDate({
-          day: hijriDay,
-          month: hijriMonth,
-          monthName: monthNames[hijriMonth - 1],
-          year: hijriYear,
-          format: `${hijriDay} ${monthNames[hijriMonth - 1]} ${hijriYear}`,
-        })
-
-        // Set upcoming events based on calculated month
-        setUpcomingEventsForMonth(hijriMonth)
-      } finally {
-        setIsLoading(false)
-      }
+    return {
+      day: hijriDay,
+      month: islamicMonths[hijriMonth] || islamicMonths[0],
+      year: hijriYear,
+      gregorianDate: gregorianDate.toLocaleDateString(),
     }
-
-    fetchHijriDate()
-  }, [])
-
-  const setUpcomingEventsForMonth = (month: number) => {
-    const events: string[] = []
-
-    switch (month) {
-      case 1: // Muharram
-        events.push("Islamic New Year (1 Muharram)")
-        events.push("Day of Ashura (10 Muharram)")
-        break
-      case 3: // Rabi al-Awwal
-        events.push("Mawlid al-Nabi - Prophet's Birthday (12 Rabi al-Awwal)")
-        break
-      case 7: // Rajab
-        events.push("Laylat al-Miraj - Night Journey (27 Rajab)")
-        break
-      case 8: // Sha'ban
-        events.push("Laylat al-Bara'at - Night of Forgiveness (15 Sha'ban)")
-        break
-      case 9: // Ramadan
-        events.push("Beginning of Ramadan (1 Ramadan)")
-        events.push("Laylat al-Qadr - Night of Power (27 Ramadan)")
-        break
-      case 10: // Shawwal
-        events.push("Eid al-Fitr (1 Shawwal)")
-        break
-      case 12: // Dhu al-Hijjah
-        events.push("Day of Arafah (9 Dhu al-Hijjah)")
-        events.push("Eid al-Adha (10 Dhu al-Hijjah)")
-        break
-      default:
-        events.push("No major Islamic events this month")
-    }
-
-    setUpcomingEvents(events)
   }
 
-  return (
-    <div className="w-full">
-      {isLoading ? (
-        <div className="space-y-2">
-          <Skeleton className="h-6 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-          <Skeleton className="h-4 w-full mt-4" />
-          <Skeleton className="h-4 w-full" />
-        </div>
-      ) : hijriDate ? (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <div className="bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-100 rounded-full h-10 w-10 flex items-center justify-center text-lg font-bold">
-                {hijriDate.day}
-              </div>
-              <div>
-                <p className="font-medium">{hijriDate.monthName}</p>
-                <p className="text-xs text-muted-foreground">{hijriDate.year} AH</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <Badge variant="outline">
-                {new Date().toLocaleDateString(undefined, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })}
-              </Badge>
-            </div>
-          </div>
+  const getEventsForDate = (day: number, month: number): IslamicEvent[] => {
+    const dateKey = `${day}-${month + 1}`
+    return islamicEvents.filter((event) => event.date === dateKey)
+  }
 
-          <div className="pt-2 border-t">
-            <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Upcoming Events</h4>
-            <ul className="space-y-1">
-              {upcomingEvents.map((event, index) => (
-                <li key={index} className="text-xs flex items-start">
-                  <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 mt-1.5 mr-2 flex-shrink-0"></span>
-                  <span>{event}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+  const getEventTypeColor = (type: string) => {
+    switch (type) {
+      case "religious":
+        return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
+      case "historical":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+      case "special":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+    }
+  }
+
+  const navigateMonth = (direction: "prev" | "next") => {
+    setSelectedMonth((prev) => {
+      if (direction === "next") {
+        return (prev + 1) % 12
+      } else {
+        return prev === 0 ? 11 : prev - 1
+      }
+    })
+  }
+
+  useEffect(() => {
+    const today = new Date()
+    const hijriDate = convertToHijri(today)
+    setCurrentDate(hijriDate)
+
+    // Set current month
+    const currentMonthIndex = islamicMonths.indexOf(hijriDate.month)
+    setSelectedMonth(currentMonthIndex >= 0 ? currentMonthIndex : 0)
+
+    // Get today's events
+    const events = getEventsForDate(hijriDate.day, currentMonthIndex)
+    setTodayEvents(events)
+  }, [])
+
+  if (!currentDate) {
+    return (
+      <div className="space-y-4">
+        <div className="animate-pulse">
+          <div className="h-6 w-32 bg-muted rounded mb-2" />
+          <div className="h-4 w-24 bg-muted rounded" />
         </div>
-      ) : (
-        <p className="text-muted-foreground">Unable to load Islamic calendar data.</p>
+      </div>
+    )
+  }
+
+  const currentMonthEvents = islamicEvents.filter((event) => {
+    const [, month] = event.date.split("-")
+    return Number.parseInt(month) === selectedMonth + 1
+  })
+
+  return (
+    <div className="space-y-4">
+      {/* Current Date */}
+      <div className="text-center p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+        <div className="text-lg font-bold text-emerald-800 dark:text-emerald-200">
+          {currentDate.day} {currentDate.month} {currentDate.year} AH
+        </div>
+        <div className="text-sm text-emerald-600 dark:text-emerald-400">{currentDate.gregorianDate}</div>
+      </div>
+
+      {/* Month Navigation */}
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="sm" onClick={() => navigateMonth("prev")}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <h3 className="font-semibold">{islamicMonths[selectedMonth]}</h3>
+        <Button variant="ghost" size="sm" onClick={() => navigateMonth("next")}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Today's Events */}
+      {todayEvents.length > 0 && (
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium flex items-center gap-2">
+            <Star className="h-4 w-4 text-yellow-500" />
+            Today's Events
+          </h4>
+          {todayEvents.map((event, index) => (
+            <div key={index} className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded border-l-4 border-yellow-400">
+              <div className="flex items-center gap-2">
+                <Badge className={getEventTypeColor(event.type)}>{event.type}</Badge>
+                <span className="text-sm font-medium">{event.name}</span>
+              </div>
+              {event.description && <p className="text-xs text-muted-foreground mt-1">{event.description}</p>}
+            </div>
+          ))}
+        </div>
       )}
+
+      {/* Month Events */}
+      <div className="space-y-2">
+        <h4 className="text-sm font-medium flex items-center gap-2">
+          <Calendar className="h-4 w-4" />
+          {islamicMonths[selectedMonth]} Events
+        </h4>
+        {currentMonthEvents.length > 0 ? (
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {currentMonthEvents.map((event, index) => {
+              const [day] = event.date.split("-")
+              return (
+                <div key={index} className="p-2 bg-gray-50 dark:bg-gray-800 rounded text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs bg-gray-200 dark:bg-gray-700 px-1 rounded">{day}</span>
+                    <Badge className={getEventTypeColor(event.type)} variant="outline">
+                      {event.type}
+                    </Badge>
+                    <span className="font-medium">{event.name}</span>
+                  </div>
+                  {event.description && <p className="text-xs text-muted-foreground mt-1 ml-8">{event.description}</p>}
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">No special events this month</p>
+        )}
+      </div>
     </div>
   )
 }

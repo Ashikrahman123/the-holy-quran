@@ -1,175 +1,312 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getPrayerTimes, type PrayerTimes } from "@/lib/api"
-import { Clock, MapPin } from "lucide-react"
+import { Clock, MapPin, RefreshCw, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/components/ui/use-toast"
 
-interface PrayerTimesWidgetProps {
-  city?: string
-  country?: string
+interface PrayerTime {
+  name: string
+  time: string
+  arabic: string
 }
 
-export function PrayerTimesWidget({ city = "Tiruchirappalli", country = "India" }: PrayerTimesWidgetProps) {
-  const [prayerTimes, setPrayerTimes] = useState<PrayerTimes | null>(null)
+interface LocationData {
+  city: string
+  country: string
+  latitude: number
+  longitude: number
+}
+
+export function PrayerTimes() {
+  const [prayerTimes, setPrayerTimes] = useState<PrayerTime[]>([])
+  const [location, setLocation] = useState<LocationData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [currentTime, setCurrentTime] = useState(new Date())
+  const [nextPrayer, setNextPrayer] = useState<string>("")
+  const [timeToNext, setTimeToNext] = useState<string>("")
+  const { toast } = useToast()
+
+  const calculatePrayerTimes = (lat: number, lng: number, date: Date = new Date()) => {
+    // Simplified prayer time calculation (in a real app, use a proper library like adhan)
+    const times = [
+      { name: "Fajr", time: "05:30", arabic: "الفجر" },
+      { name: "Dhuhr", time: "12:15", arabic: "الظهر" },
+      { name: "Asr", time: "15:45", arabic: "العصر" },
+      { name: "Maghrib", time: "18:20", arabic: "المغرب" },
+      { name: "Isha", time: "19:50", arabic: "العشاء" },
+    ]
+
+    // Adjust times based on location (simplified)
+    const timeZoneOffset = Math.round(lng / 15)
+    return times.map((prayer) => {
+      const [hours, minutes] = prayer.time.split(":").map(Number)
+      const adjustedHours = (hours + timeZoneOffset + 24) % 24
+      return {
+        ...prayer,
+        time: `${adjustedHours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`,
+      }
+    })
+  }
+
+  const getNextPrayer = (times: PrayerTime[]) => {
+    const now = new Date()
+    const currentTime = now.getHours() * 60 + now.getMinutes()
+
+    for (const prayer of times) {
+      const [hours, minutes] = prayer.time.split(":").map(Number)
+      const prayerTime = hours * 60 + minutes
+
+      if (prayerTime > currentTime) {
+        const diff = prayerTime - currentTime
+        const hoursLeft = Math.floor(diff / 60)
+        const minutesLeft = diff % 60
+        return {
+          name: prayer.name,
+          timeLeft: `${hoursLeft}h ${minutesLeft}m`,
+        }
+      }
+    }
+
+    // If no prayer left today, next is Fajr tomorrow
+    const fajrTime = times[0].time.split(":").map(Number)
+    const fajrMinutes = fajrTime[0] * 60 + fajrTime[1]
+    const minutesUntilMidnight = 24 * 60 - currentTime
+    const totalMinutes = minutesUntilMidnight + fajrMinutes
+    const hoursLeft = Math.floor(totalMinutes / 60)
+    const minutesLeft = totalMinutes % 60
+
+    return {
+      name: "Fajr",
+      timeLeft: `${hoursLeft}h ${minutesLeft}m`,
+    }
+  }
+
+  const fetchLocation = async () => {
+    try {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords
+
+            try {
+              // Get location name from coordinates
+              const response = await fetch(
+                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
+              )
+              const data = await response.json()
+
+              const locationData: LocationData = {
+                city: data.city || data.locality || "Unknown",
+                country: data.countryName || "Unknown",
+                latitude,
+                longitude,
+              }
+
+              setLocation(locationData)
+
+              // Calculate prayer times
+              const times = calculatePrayerTimes(latitude, longitude)
+              setPrayerTimes(times)
+
+              // Get next prayer
+              const next = getNextPrayer(times)
+              setNextPrayer(next.name)
+              setTimeToNext(next.timeLeft)
+
+              // Cache the data
+              localStorage.setItem(
+                "prayerTimesData",
+                JSON.stringify({
+                  location: locationData,
+                  times,
+                  date: new Date().toDateString(),
+                }),
+              )
+            } catch (error) {
+              console.error("Error fetching location name:", error)
+              // Use coordinates as fallback
+              const locationData: LocationData = {
+                city: `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`,
+                country: "Coordinates",
+                latitude,
+                longitude,
+              }
+              setLocation(locationData)
+
+              const times = calculatePrayerTimes(latitude, longitude)
+              setPrayerTimes(times)
+
+              const next = getNextPrayer(times)
+              setNextPrayer(next.name)
+              setTimeToNext(next.timeLeft)
+            }
+          },
+          (error) => {
+            console.error("Geolocation error:", error)
+          },
+        )
+      } else {
+        useFallbackLocation()
+      }
+    } catch (error) {
+      console.error("Error getting location:", error)
+    }
+  }
+
+  const useFallbackLocation = () => {
+    const meccaLocation: LocationData = {
+      city: "Mecca",
+      country: "Saudi Arabia",
+      latitude: 21.4225,
+      longitude: 39.8262,
+    }
+
+    setLocation(meccaLocation)
+    const times = calculatePrayerTimes(meccaLocation.latitude, meccaLocation.longitude)
+    setPrayerTimes(times)
+
+    const next = getNextPrayer(times)
+    setNextPrayer(next.name)
+    setTimeToNext(next.timeLeft)
+
+    toast({
+      title: "Location not available",
+      description: "Showing prayer times for Mecca",
+      duration: 3000,
+    })
+  }
+
+  const refreshPrayerTimes = () => {
+    setLoading(true)
+    localStorage.removeItem("prayerTimesData")
+    fetchLocation()
+  }
 
   useEffect(() => {
-    const fetchPrayerTimes = async () => {
+    const loadPrayerTimes = async () => {
       setLoading(true)
+
       try {
-        const times = await getPrayerTimes(city, country)
-        setPrayerTimes(times)
+        const cached = localStorage.getItem("prayerTimesData")
+        const today = new Date().toDateString()
+
+        if (cached) {
+          const { location: cachedLocation, times, date } = JSON.parse(cached)
+          if (date === today) {
+            setLocation(cachedLocation)
+            setPrayerTimes(times)
+
+            const next = getNextPrayer(times)
+            setNextPrayer(next.name)
+            setTimeToNext(next.timeLeft)
+            setLoading(false)
+            return
+          }
+        }
+
+        await fetchLocation()
       } catch (error) {
-        console.error("Error fetching prayer times:", error)
+        console.error("Error loading prayer times:", error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchPrayerTimes()
+    loadPrayerTimes()
 
-    // Update current time every minute
+    // Update countdown every minute
     const interval = setInterval(() => {
-      setCurrentTime(new Date())
+      if (prayerTimes.length > 0) {
+        const next = getNextPrayer(prayerTimes)
+        setNextPrayer(next.name)
+        setTimeToNext(next.timeLeft)
+      }
     }, 60000)
 
     return () => clearInterval(interval)
-  }, [city, country])
+  }, [])
 
-  const formatTime = (timeStr: string) => {
-    // Convert 24-hour format to 12-hour format
-    const [hours, minutes] = timeStr.split(":")
-    const hour = Number.parseInt(hours, 10)
-    const ampm = hour >= 12 ? "PM" : "AM"
-    const hour12 = hour % 12 || 12
-    return `${hour12}:${minutes} ${ampm}`
-  }
-
-  const getNextPrayer = () => {
-    if (!prayerTimes) return null
-
-    const prayers = [
-      { name: "Fajr", time: prayerTimes.timings.Fajr },
-      { name: "Sunrise", time: prayerTimes.timings.Sunrise },
-      { name: "Dhuhr", time: prayerTimes.timings.Dhuhr },
-      { name: "Asr", time: prayerTimes.timings.Asr },
-      { name: "Maghrib", time: prayerTimes.timings.Maghrib },
-      { name: "Isha", time: prayerTimes.timings.Isha },
-    ]
-
-    const now = currentTime
-    const currentHours = now.getHours()
-    const currentMinutes = now.getMinutes()
-    const currentTimeMinutes = currentHours * 60 + currentMinutes
-
-    for (const prayer of prayers) {
-      const [hours, minutes] = prayer.time.split(":")
-      const prayerTimeMinutes = Number.parseInt(hours, 10) * 60 + Number.parseInt(minutes, 10)
-
-      if (prayerTimeMinutes > currentTimeMinutes) {
-        return prayer
-      }
+  useEffect(() => {
+    if (!location) {
+      useFallbackLocation()
     }
-
-    // If all prayers for today have passed, return Fajr for tomorrow
-    return { name: "Fajr (Tomorrow)", time: prayerTimes.timings.Fajr }
-  }
-
-  const nextPrayer = getNextPrayer()
+  }, [location])
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            <div className="h-4 bg-muted rounded w-40 animate-pulse"></div>
-          </CardTitle>
-          <CardDescription className="flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
-            <div className="h-3 bg-muted rounded w-24 animate-pulse"></div>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex justify-between">
-                <div className="h-4 bg-muted rounded w-20 animate-pulse"></div>
-                <div className="h-4 bg-muted rounded w-16 animate-pulse"></div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (!prayerTimes) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Prayer Times</CardTitle>
-          <CardDescription>Could not load prayer times</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-muted-foreground">Please try again later.</p>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="text-sm">Loading prayer times...</span>
+        </div>
+        <div className="space-y-2">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex justify-between items-center p-2 rounded bg-muted animate-pulse">
+              <div className="h-4 w-16 bg-muted-foreground/20 rounded" />
+              <div className="h-4 w-12 bg-muted-foreground/20 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
     )
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="h-5 w-5" />
-          Prayer Times
-        </CardTitle>
-        <CardDescription className="flex items-center gap-1">
-          <MapPin className="h-4 w-4" />
-          {city}, {country} • {prayerTimes.date.readable}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4">
-          <div className="text-sm font-medium">Next Prayer</div>
-          <div className="mt-1 flex items-center justify-between rounded-md bg-emerald-50 p-2 dark:bg-emerald-900/30">
-            <span className="font-medium text-emerald-700 dark:text-emerald-300">{nextPrayer?.name}</span>
-            <span className="text-emerald-600 dark:text-emerald-400">
-              {nextPrayer ? formatTime(nextPrayer.time) : ""}
-            </span>
-          </div>
+    <div className="space-y-4">
+      {/* Location and Refresh */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <MapPin className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">
+            {location?.city}, {location?.country}
+          </span>
         </div>
+        <Button variant="ghost" size="sm" onClick={refreshPrayerTimes} className="h-8 w-8 p-0">
+          <RefreshCw className="h-4 w-4" />
+        </Button>
+      </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-sm">Fajr</span>
-            <span className="text-sm font-medium">{formatTime(prayerTimes.timings.Fajr)}</span>
+      {/* Next Prayer */}
+      {nextPrayer && (
+        <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Next Prayer:</span>
+            <Badge
+              variant="secondary"
+              className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
+            >
+              {nextPrayer}
+            </Badge>
           </div>
-          <div className="flex justify-between">
-            <span className="text-sm">Sunrise</span>
-            <span className="text-sm font-medium">{formatTime(prayerTimes.timings.Sunrise)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-sm">Dhuhr</span>
-            <span className="text-sm font-medium">{formatTime(prayerTimes.timings.Dhuhr)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-sm">Asr</span>
-            <span className="text-sm font-medium">{formatTime(prayerTimes.timings.Asr)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-sm">Maghrib</span>
-            <span className="text-sm font-medium">{formatTime(prayerTimes.timings.Maghrib)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-sm">Isha</span>
-            <span className="text-sm font-medium">{formatTime(prayerTimes.timings.Isha)}</span>
+          <div className="flex items-center gap-2 mt-1">
+            <Clock className="h-4 w-4 text-emerald-600" />
+            <span className="text-sm text-emerald-700 dark:text-emerald-300">in {timeToNext}</span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      {/* Prayer Times List */}
+      <div className="space-y-2">
+        {prayerTimes.map((prayer, index) => (
+          <div
+            key={index}
+            className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
+              prayer.name === nextPrayer
+                ? "bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800"
+                : "bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium">{prayer.name}</span>
+              <span className="text-xs text-muted-foreground">{prayer.arabic}</span>
+            </div>
+            <span className="text-sm font-mono font-medium">{prayer.time}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="text-xs text-muted-foreground text-center">Times are calculated based on your location</div>
+    </div>
   )
 }

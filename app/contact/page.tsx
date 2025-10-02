@@ -103,8 +103,8 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-medium">Email</h3>
-                      <p className="text-muted-foreground">info@holyquran-example.com</p>
-                      <p className="text-muted-foreground">support@holyquran-example.com</p>
+                      <p className="text-muted-foreground">ashikr142@gmail.com</p>
+                      <p className="text-muted-foreground">tmailid142@gmail.com</p>
                     </div>
                   </div>
 
@@ -114,8 +114,8 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-medium">Phone</h3>
-                      <p className="text-muted-foreground">+1 (555) 123-4567</p>
-                      <p className="text-muted-foreground">+1 (555) 765-4321</p>
+                      <p className="text-muted-foreground">+91 8778392120</p>
+                      <p className="text-muted-foreground">+91 9788784470</p>
                     </div>
                   </div>
 
@@ -126,13 +126,13 @@ export default function ContactPage() {
                     <div>
                       <h3 className="font-medium">Address</h3>
                       <p className="text-muted-foreground">
-                        123 Islamic Center Drive
+                        Anna Nagar
                         <br />
-                        Suite 456
+                        Hidayath Nagar
                         <br />
-                        New York, NY 10001
+                        Tennur
                         <br />
-                        United States
+                        Tiruchirappalli
                       </p>
                     </div>
                   </div>
