@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { UserPreferencesProvider } from "@/contexts/user-preferences-context"
 import { AudioProvider } from "@/contexts/audio-context"
 import { FloatingAudioPlayer } from "@/components/floating-audio-player"
-import { FloatingChatbot } from "@/components/floating-chatbot"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -30,7 +29,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <AudioProvider>
               {children}
               <FloatingAudioPlayer />
-              <FloatingChatbot />
             </AudioProvider>
           </UserPreferencesProvider>
         </ThemeProvider>
