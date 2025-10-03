@@ -171,6 +171,19 @@ export default function HomePage() {
                 </CardContent>
               </Card>
 
+              {/* Daily Hadith */}
+              <Card className="overflow-hidden shadow-md">
+                <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b">
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <BookMarked className="h-5 w-5 text-emerald-600" />
+                    Hadith of the Day
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 px-6">
+                  <DailyHadith />
+                </CardContent>
+              </Card>
+
               {/* Dhikr Counter */}
               <Card className="overflow-hidden shadow-md">
                 <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b">
@@ -216,18 +229,7 @@ export default function HomePage() {
                 </CardContent>
               </Card>
 
-              {/* Daily Hadith */}
-              <Card className="shadow-md">
-                <CardHeader className="pb-3 border-b bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <BookMarked className="h-5 w-5 text-emerald-600" />
-                    Hadith of the Day
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-5 px-5">
-                  <DailyHadith />
-                </CardContent>
-              </Card>
+              
 
               {/* Quick Links */}
               <Card className="shadow-md">
